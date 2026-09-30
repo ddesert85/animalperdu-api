@@ -1,34 +1,68 @@
 require('dotenv').config();
 const express = require('express');
-const { Pool } = require('pg');
+const mysql = require('mysql2/promise');
 
 const app = express();
 app.use(express.json());
 
-// Configuration de la connexion PostgreSQL
-const pool = new Pool({
-  host: process.env.DB_HOST,
-  port: process.env.DB_PORT,
+const pool = mysql.createPool({
+  host: process.env.DB_HOST || 'localhost',
   user: process.env.DB_USER,
   password: process.env.DB_PASSWORD,
   database: process.env.DB_NAME,
+  port: process.env.DB_PORT ? parseInt(process.env.DB_PORT, 10) : 3306,
+  waitForConnections: true,
+  connectionLimit: 10,
+  queueLimit: 0
 });
 
-// Route de test avec requête BDD
 app.get('/api/health', async (req, res) => {
   try {
-    const result = await pool.query('SELECT NOW()');
+    const [rows] = await pool.query('SELECT NOW() AS now');
     res.json({
       statut: 'OK',
-      message: 'API et Base de données PostgreSQL opérationnelles',
-      horodate_bdd: result.rows[0].now,
+      message: 'API et Base de données MySQL opérationnelles',
+      horodate_bdd: rows[0].now,
     });
   } catch (error) {
     res.status(500).json({
       statut: 'Erreur',
       message: 'Échec de connexion à la BDD',
       erreur: error.message,
-      detail: error.stack
+    });
+  }
+});
+
+app.get('/api/medailles/:token', async (req, res) => {
+  const { token } = req.params;
+
+  try {
+    const [rows] = await pool.query(
+      'SELECT token, nom_animal, espece, nom_proprietaire, telephone, email, adresse, photo_url, statut, dernier_scan FROM medailles WHERE token = ?',
+      [token]
+    );
+
+    if (rows.length === 0) {
+      return res.status(404).json({
+        statut: 'Erreur',
+        message: 'Médaille introuvable',
+      });
+    }
+
+    await pool.query(
+      'UPDATE medailles SET dernier_scan = NOW() WHERE token = ?',
+      [token]
+    );
+
+    res.json({
+      statut: 'Succès',
+      donnees: rows[0],
+    });
+  } catch (error) {
+    res.status(500).json({
+      statut: 'Erreur',
+      message: 'Erreur lors de la récupération de la médaille',
+      erreur: error.message,
     });
   }
 });
