@@ -1,40 +1,109 @@
 <!DOCTYPE html>
 <html lang="fr">
+
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
     <title>Test API Animal Perdu</title>
 </head>
+
 <body>
+
     <h1>Recherche de Médaille - Test</h1>
-    
+
     <!-- Formulaire de recherche -->
     <form id="searchForm">
-        <label for="idMedaille">ID de la médaille :</label>
-        <input type="text" id="idMedaille" value="1" required>
-        <button type="submit">Rechercher</button>
+
+        <label for="idMedaille">
+            ID de la médaille :
+        </label>
+
+        <input
+            type="text"
+            id="idMedaille"
+            value="1"
+            required
+        >
+
+        <button type="submit">
+            Rechercher
+        </button>
+
     </form>
 
+
     <h2>Résultat :</h2>
-    <pre id="resultat">En attente d'une recherche...</pre>
+
+    <pre id="resultat">
+En attente d'une recherche...
+    </pre>
+
 
     <script>
-        document.getElementById('searchForm').addEventListener('submit', async function(e) {
-            e.preventDefault();
-            const id = document.getElementById('idMedaille').value;
-            const resultatDiv = document.getElementById('resultat');
 
+        // On récupère le formulaire
+        const searchForm = document.getElementById('searchForm');
+
+        // On récupère la zone dans laquelle on affichera le résultat
+        const resultatDiv = document.getElementById('resultat');
+
+
+        // Quand on clique sur "Rechercher"
+        searchForm.addEventListener('submit', async function(e) {
+
+            // Empêche le formulaire de recharger la page
+            e.preventDefault();
+
+
+            // Récupère l'ID saisi dans le champ
+            const id = document.getElementById('idMedaille').value;
+
+
+            // Affiche un message pendant la recherche
             resultatDiv.textContent = "Chargement...";
 
+
             try {
-                // Appel vers ton API locale
-                const response = await fetch(`http://localhost:3000/api/medailles/${id}`);
+
+                // Appel de notre API Node.js
+                const response = await fetch(
+                    `https://api.animalperdu.lilotcadeaux.com/api/medailles/${id}`
+                );
+
+
+                // Vérifie si le serveur a répondu correctement
+                if (!response.ok) {
+
+                    throw new Error(
+                        `Erreur HTTP ${response.status}`
+                    );
+
+                }
+
+
+                // Transforme la réponse JSON en objet JavaScript
                 const data = await response.json();
-                
-                resultatDiv.textContent = JSON.stringify(data, null, 2);
+
+
+                // Affiche le résultat dans la page
+                resultatDiv.textContent =
+                    JSON.stringify(data, null, 2);
+
+
             } catch (error) {
-                resultatDiv.textContent = "Erreur de connexion à l'API : " + error.message;
+
+                // Affiche l'erreur en cas de problème
+                resultatDiv.textContent =
+                    "Erreur de connexion à l'API : " +
+                    error.message;
+
             }
+
         });
+
     </script>
+
 </body>
+
 </html>
