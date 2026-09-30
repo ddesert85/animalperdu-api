@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+    <meta charset="UTF-8">
+    <title>Test API Animal Perdu</title>
+</head>
+<body>
+    <h1>Recherche de Médaille - Test</h1>
+    
+    <!-- Formulaire de recherche -->
+    <form id="searchForm">
+        <label for="idMedaille">ID de la médaille :</label>
+        <input type="text" id="idMedaille" value="1" required>
+        <button type="submit">Rechercher</button>
+    </form>
+
+    <h2>Résultat :</h2>
+    <pre id="resultat">En attente d'une recherche...</pre>
+
+    <script>
+        document.getElementById('searchForm').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            const id = document.getElementById('idMedaille').value;
+            const resultatDiv = document.getElementById('resultat');
+
+            resultatDiv.textContent = "Chargement...";
+
+            try {
+                // Appel vers ton API locale
+                const response = await fetch(`http://localhost:3000/api/medailles/${id}`);
+                const data = await response.json();
+                
+                resultatDiv.textContent = JSON.stringify(data, null, 2);
+            } catch (error) {
+                resultatDiv.textContent = "Erreur de connexion à l'API : " + error.message;
+            }
+        });
+    </script>
+</body>
+</html>
