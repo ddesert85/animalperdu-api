@@ -1,75 +1,43 @@
 <!DOCTYPE html>
 <html lang="fr">
 <head>
-<meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
 <meta name="theme-color" content="#315c45">
 <title>Animal Perdu — Retrouvons-les ensemble</title>
 <meta name="description" content="Une médaille avec QR code pour faciliter les retrouvailles avec votre animal.">
-<style>
-:root{--g:#315c45;--gd:#244633;--ink:#26332d;--muted:#66736b;--pale:#edf4ee}
-*{box-sizing:border-box}body{margin:0;font-family:Arial,sans-serif;color:var(--ink);background:#fbfcfa}
-.topbar{width:min(1120px,calc(100% - 40px));margin:auto;min-height:78px;display:flex;align-items:center;justify-content:space-between;gap:16px}
-.brand{display:flex;align-items:center;gap:10px;color:var(--g);font-size:22px;font-weight:800;text-decoration:none}
-.mark{width:40px;height:40px;border-radius:13px;background:var(--g);color:white;display:grid;place-items:center;font-size:22px}
-.nav{color:var(--g);text-decoration:none;font-weight:bold;border:1px solid #cbd9ce;padding:12px 16px;border-radius:999px}
-.hero{background:linear-gradient(135deg,#edf4ee,#f8faf7);padding:70px 20px}
-.inner{max-width:1120px;margin:auto;display:grid;grid-template-columns:1.1fr .9fr;align-items:center;gap:45px}
-.eyebrow{color:var(--g);font-size:13px;font-weight:bold;letter-spacing:1.5px;text-transform:uppercase}
-h1{font-size:clamp(38px,5vw,60px);line-height:1.08;color:var(--gd);margin:15px 0}
-.intro{max-width:570px;color:#58665d;font-size:19px;line-height:1.65}
-.cta{display:inline-block;margin-top:18px;padding:16px 22px;border-radius:10px;background:var(--g);color:white;text-decoration:none;font-weight:bold}
-.visual{min-height:290px;border-radius:26px;background:white;box-shadow:0 18px 50px #23442f14;display:grid;place-items:center}
-.tag{width:205px;height:225px;border:2px solid #dce8de;border-radius:24px 24px 45px 45px;display:flex;flex-direction:column;align-items:center;justify-content:center;color:var(--g);background:linear-gradient(145deg,#fff,#f2f7f2);position:relative}
-.tag:before{content:"";position:absolute;top:-8px;width:32px;height:12px;border:2px solid #dce8de;border-radius:10px;background:white}
-.paw{font-size:40px}.tag strong{margin:10px 0 14px}.qr{width:72px;height:72px;border:7px solid white;outline:1px solid #d7e2d9;background:repeating-conic-gradient(var(--g) 0 25%,white 0 50%) 0 0/16px 16px}
-.steps{max-width:1120px;margin:auto;padding:62px 20px 72px}.section-title{text-align:center;color:var(--gd);font-size:32px;margin:0 0 12px}
-.sub{text-align:center;color:var(--muted);line-height:1.6;margin:0 auto 32px;max-width:620px}
-.cards{display:grid;grid-template-columns:repeat(3,1fr);gap:20px}.card{background:white;border:1px solid #edf0ed;border-radius:17px;padding:24px}
-.num{width:38px;height:38px;border-radius:12px;background:#eaf2ec;color:var(--g);display:grid;place-items:center;font-weight:bold}
-.card h3{color:var(--gd);margin:16px 0 8px}.card p{color:var(--muted);line-height:1.6;margin:0}
-footer{background:#f0f4f0;text-align:center;color:#68766d;padding:24px;font-size:14px}
-.container{max-width:450px;margin:45px auto;background:white;padding:25px;border-radius:16px;box-shadow:0 4px 15px #00000014}
-.container h1{text-align:center;color:var(--g);font-size:32px;margin:10px 0 22px}.message{text-align:center;padding:20px;color:#555;line-height:1.5}
-.animal-name{text-align:center;font-size:28px;margin-bottom:5px}.animal-species{text-align:center;color:#777;margin-top:0}
-.photo{width:100%;height:250px;object-fit:cover;border-radius:12px;margin:15px 0}.owner{margin-top:25px;padding:15px;background:#f3f5f4;border-radius:10px;text-align:center}
-.call-button{display:block;margin-top:20px;padding:15px;background:#31845a;color:white;text-align:center;text-decoration:none;font-weight:bold;border-radius:10px}
-[hidden]{display:none!important}
-@media(max-width:760px){.hero{padding:45px 20px}.inner{grid-template-columns:1fr;gap:32px}.visual{min-height:250px}.cards{grid-template-columns:1fr}.topbar{min-height:68px}.brand{font-size:19px}.nav{padding:10px;font-size:14px}}
-</style>
+<link rel="stylesheet" href="./css/style.css">
 </head>
 <body>
-<header class="topbar" id="home-header"><a class="brand" href="./"><span class="mark">🐾</span>Animal Perdu</a><a class="nav" href="#espace-proprietaire" id="owner-link">Espace propriétaire</a></header>
+<header class="topbar" id="home-header">
+  <a class="brand" href="./"><span class="mark">🐾</span>Animal Perdu</a>
+  <a class="nav" href="./pages/connexion.html">Espace propriétaire</a>
+</header>
+
 <main id="home-page">
-<section class="hero"><div class="inner"><div><div class="eyebrow">Une médaille, un lien précieux</div>
-<h1>Pour qu'ils retrouvent toujours le chemin de la maison.</h1>
-<p class="intro">Une médaille avec QR code permet à la personne qui retrouve votre compagnon de consulter sa fiche et de vous contacter rapidement.</p>
-<a class="cta" href="#espace-proprietaire" id="owner-cta">Découvrir l’espace propriétaire</a></div>
-<div class="visual" aria-hidden="true"><div class="tag"><div class="paw">🐾</div><strong>Mon compagnon</strong><div class="qr"></div></div></div></div></section>
-<section class="steps"><h2 class="section-title">Comment ça marche ?</h2><p class="sub">Un fonctionnement simple pour faciliter les retrouvailles si votre animal s’égare.</p>
-<div class="cards"><article class="card"><div class="num">1</div><h3>Créez sa fiche</h3><p>Renseignez les informations utiles de votre animal et vos coordonnées de contact.</p></article>
-<article class="card"><div class="num">2</div><h3>Associez sa médaille</h3><p>Le QR code de sa médaille permet d’accéder à sa fiche depuis un téléphone.</p></article>
-<article class="card"><div class="num">3</div><h3>Facilitez le contact</h3><p>La personne qui le retrouve peut consulter les informations disponibles et vous appeler.</p></article></div></section>
-<footer>Animal Perdu — Pour aider les compagnons à retrouver leur foyer.</footer></main>
+  <section class="hero"><div class="inner"><div>
+    <div class="eyebrow">Une médaille, un lien précieux</div>
+    <h1>Pour qu'ils retrouvent toujours le chemin de la maison.</h1>
+    <p class="intro">Une médaille avec QR code permet à la personne qui retrouve votre compagnon de consulter sa fiche et de vous contacter rapidement.</p>
+    <a class="cta" href="./pages/connexion.html">Découvrir l’espace propriétaire</a>
+  </div>
+  <div class="visual" aria-hidden="true"><div class="tag"><div class="paw">🐾</div><strong>Mon compagnon</strong><div class="qr"></div></div></div>
+  </div></section>
+  <section class="steps"><h2 class="section-title">Comment ça marche ?</h2><p class="sub">Un fonctionnement simple pour faciliter les retrouvailles si votre animal s’égare.</p>
+    <div class="cards">
+      <article class="card"><div class="num">1</div><h3>Créez sa fiche</h3><p>Renseignez les informations utiles de votre animal et vos coordonnées de contact.</p></article>
+      <article class="card"><div class="num">2</div><h3>Associez sa médaille</h3><p>Le QR code de sa médaille permet d’accéder à sa fiche depuis un téléphone.</p></article>
+      <article class="card"><div class="num">3</div><h3>Facilitez le contact</h3><p>La personne qui le retrouve peut consulter les informations disponibles et vous appeler.</p></article>
+    </div>
+  </section>
+  <footer>Animal Perdu — Pour aider les compagnons à retrouver leur foyer.</footer>
+</main>
+
+
+
 <main id="medal-page" hidden><div class="container"><h1>Animal Perdu</h1><div id="fiche" class="message">Recherche de l'animal...</div></div></main>
-<script>
-const params=new URLSearchParams(window.location.search), idMedaille=params.get("id");
-const home=document.getElementById("home-page"), header=document.getElementById("home-header"), medal=document.getElementById("medal-page");
-if(idMedaille!==null){home.hidden=true;header.hidden=true;medal.hidden=false;chargerMedaille(idMedaille);}
-document.querySelectorAll("#owner-link,#owner-cta").forEach(link=>link.addEventListener("click",e=>{e.preventDefault();alert("L’espace propriétaire est en cours de préparation. Il sera accessible ici prochainement.");}));
-async function chargerMedaille(id){
- const fiche=document.getElementById("fiche");
- if(!/^\d+$/.test(id)||Number(id)<=0){fiche.textContent="Médaille introuvable.";return;}
- fiche.textContent="Chargement de la fiche...";
- try{
-  const response=await fetch(`https://api.animalperdu.lilotcadeaux.com/api/medailles/${encodeURIComponent(id)}`);
-  const data=await response.json();
-  if(!response.ok){if(response.status===403)fiche.textContent="Cette médaille a été désactivée par son propriétaire.";else if(response.status===404)fiche.textContent="Cette médaille n'existe pas ou n'est plus disponible.";else fiche.textContent="Impossible de récupérer les informations de cet animal.";return;}
-  const animal=data.donnees;fiche.replaceChildren();
-  const titre=document.createElement("h2");titre.className="animal-name";titre.textContent=animal.nom_animal||"Animal";
-  const espece=document.createElement("p");espece.className="animal-species";espece.textContent=animal.espece||"";fiche.append(titre,espece);
-  if(animal.photo_url){const photo=document.createElement("img");photo.className="photo";photo.src=animal.photo_url;photo.alt="Photo de "+(animal.nom_animal||"l’animal");fiche.appendChild(photo);}
-  const owner=document.createElement("div");owner.className="owner";owner.textContent="Propriétaire : "+(animal.nom_proprietaire||"");fiche.appendChild(owner);
-  if(animal.telephone){const call=document.createElement("a");call.className="call-button";call.href="tel:"+animal.telephone;call.textContent="Appeler le propriétaire";fiche.appendChild(call);}
- }catch(error){fiche.textContent="Impossible de charger les informations. Veuillez réessayer.";console.error("Erreur lors du chargement de la médaille :",error);}
-}
-</script></body></html>
+
+<script src="./js/api.js"></script>
+<script src="./js/accueil.js"></script>
+</body>
+</html>
