@@ -1,3 +1,4 @@
+
 /**
  * Gestion du formulaire de connexion propriétaire.
  */
@@ -20,7 +21,10 @@ loginForm.addEventListener("submit", async (event) => {
     const response = await fetch(`${API_BASE_URL}/auth/connexion`, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, mot_de_passe: password })
+      body: JSON.stringify({
+        email,
+        mot_de_passe: password
+      })
     });
 
     const result = await response.json().catch(() => ({}));
@@ -33,14 +37,26 @@ loginForm.addEventListener("submit", async (event) => {
       return;
     }
 
-    // Le jeton n'est pas conservé avant la construction de l'espace sécurisé.
+    if (!result.token) {
+      feedback.textContent =
+        "Connexion réussie, mais aucun jeton d'authentification n'a été reçu.";
+      return;
+    }
+
+    // Conservation du jeton pour les prochaines pages sécurisées.
+    sessionStorage.setItem("animalperdu_token", result.token);
+
     feedback.style.color = "#315c45";
-    feedback.textContent =
-      "Connexion validée. L’espace propriétaire sera ajouté à la prochaine étape.";
+    feedback.textContent = "Connexion validée. Redirection…";
+
+    window.location.href = "./proprietaire.html";
+
   } catch (error) {
     feedback.textContent =
       "Impossible de joindre le serveur. Vérifiez votre connexion puis réessayez.";
+
     console.error("Erreur de connexion :", error);
+
   } finally {
     submit.disabled = false;
   }

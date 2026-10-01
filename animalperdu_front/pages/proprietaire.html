@@ -1,0 +1,40 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Mon espace propriétaire - Animal Perdu</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+  <header>
+    <a href="../index.html">Animal Perdu</a>
+    <button id="logout-button" type="button">Déconnexion</button>
+  </header>
+
+  <main class="auth-container">
+    <h1>Mon espace propriétaire</h1>
+
+    <p id="dashboard-feedback">Chargement de votre espace…</p>
+
+    <section id="owner-information" hidden>
+      <h2>Mes informations</h2>
+      <p><strong>Nom :</strong> <span id="owner-name"></span></p>
+      <p><strong>Email :</strong> <span id="owner-email"></span></p>
+    </section>
+
+    <section id="medals-section" hidden>
+      <h2>Mes médailles</h2>
+      <p id="medals-feedback">Chargement des médailles…</p>
+      <div id="medals-list"></div>
+    </section>
+  </main>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/proprietaire.js"></script>
+
+</body>
+</html>
