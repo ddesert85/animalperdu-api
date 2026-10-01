@@ -5,105 +5,223 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Test API Animal Perdu</title>
+    <title>Animal Perdu - Fiche animal</title>
+
+    <style>
+        * {
+            box-sizing: border-box;
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: Arial, sans-serif;
+            background: #f3f5f4;
+            color: #26332d;
+        }
+
+        .container {
+            max-width: 450px;
+            margin: 30px auto;
+            background: white;
+            padding: 25px;
+            border-radius: 16px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.08);
+        }
+
+        h1 {
+            text-align: center;
+            color: #315c45;
+        }
+
+        .photo {
+            width: 100%;
+            height: 250px;
+            object-fit: cover;
+            border-radius: 12px;
+            margin: 15px 0;
+            display: none;
+        }
+
+        .animal-name {
+            text-align: center;
+            font-size: 28px;
+            margin-bottom: 5px;
+        }
+
+        .animal-species {
+            text-align: center;
+            color: #777;
+            margin-top: 0;
+        }
+
+        .owner {
+            margin-top: 25px;
+            padding: 15px;
+            background: #f3f5f4;
+            border-radius: 10px;
+            text-align: center;
+        }
+
+        .call-button {
+            display: block;
+            margin-top: 20px;
+            padding: 15px;
+            background: #31845a;
+            color: white;
+            text-align: center;
+            text-decoration: none;
+            font-weight: bold;
+            border-radius: 10px;
+        }
+
+        .call-button:hover {
+            background: #256b47;
+        }
+
+        .message {
+            text-align: center;
+            padding: 20px;
+            color: #555;
+        }
+
+    </style>
 </head>
 
 <body>
 
-    <h1>Recherche de Médaille - Test</h1>
+    <div class="container">
 
-    <!-- Formulaire de recherche -->
-    <form id="searchForm">
+        <h1>Animal Perdu</h1>
 
-        <label for="idMedaille">
-            ID de la médaille :
-        </label>
+        <div id="fiche" class="message">
+            Recherche de l'animal...
+        </div>
 
-        <input
-            type="text"
-            id="idMedaille"
-            value="1"
-            required
-        >
-
-        <button type="submit">
-            Rechercher
-        </button>
-
-    </form>
-
-
-    <h2>Résultat :</h2>
-
-    <pre id="resultat">
-En attente d'une recherche...
-    </pre>
-
+    </div>
 
     <script>
 
-        // On récupère le formulaire
-        const searchForm = document.getElementById('searchForm');
+        const fiche = document.getElementById('fiche');
 
-        // On récupère la zone dans laquelle on affichera le résultat
-        const resultatDiv = document.getElementById('resultat');
+        async function chargerMedaille(id) {
 
-
-        // Quand on clique sur "Rechercher"
-        searchForm.addEventListener('submit', async function(e) {
-
-            // Empêche le formulaire de recharger la page
-            e.preventDefault();
-
-
-            // Récupère l'ID saisi dans le champ
-            const id = document.getElementById('idMedaille').value;
-
-
-            // Affiche un message pendant la recherche
-            resultatDiv.textContent = "Chargement...";
-
+            fiche.textContent = "Chargement de la fiche...";
 
             try {
 
-                // Appel de notre API Node.js
                 const response = await fetch(
-                    `https://api.animalperdu.lilotcadeaux.com/api/medailles/${id}`
+                    `https://api.animalperdu.lilotcadeaux.com/api/medailles/${encodeURIComponent(id)}`
                 );
 
-
-                // Vérifie si le serveur a répondu correctement
-                if (!response.ok) {
-
-                    throw new Error(
-                        `Erreur HTTP ${response.status}`
-                    );
-
-                }
-
-
-                // Transforme la réponse JSON en objet JavaScript
                 const data = await response.json();
 
+                // Gestion des erreurs de l'API
+                if (!response.ok) {
 
-                // Affiche le résultat dans la page
-                resultatDiv.textContent =
-                    JSON.stringify(data, null, 2);
+                    if (response.status === 403) {
 
+                        fiche.textContent =
+                            "Cette médaille a été désactivée par son propriétaire.";
+
+                    }
+                    else if (response.status === 404) {
+
+                        fiche.textContent =
+                            "Cette médaille n'existe pas ou n'est plus disponible.";
+
+                    }
+                    else {
+
+                        fiche.textContent =
+                            "Impossible de récupérer les informations de cet animal.";
+
+                    }
+
+                    return;
+                }
+
+                const animal = data.donnees;
+
+                // Nettoyage de la fiche
+                fiche.innerHTML = "";
+
+                // Nom de l'animal
+                const titre = document.createElement("h2");
+                titre.className = "animal-name";
+                titre.textContent = animal.nom_animal;
+
+                // Espèce
+                const espece = document.createElement("p");
+                espece.className = "animal-species";
+                espece.textContent = animal.espece;
+
+                fiche.appendChild(titre);
+                fiche.appendChild(espece);
+
+                // Photo si disponible
+                if (animal.photo_url) {
+
+                    const photo = document.createElement("img");
+
+                    photo.className = "photo";
+                    photo.src = animal.photo_url;
+                    photo.alt = "Photo de " + animal.nom_animal;
+                    photo.style.display = "block";
+
+                    fiche.appendChild(photo);
+                }
+
+                // Nom du propriétaire
+                const proprietaire = document.createElement("div");
+                proprietaire.className = "owner";
+                proprietaire.textContent =
+                    "Propriétaire : " + animal.nom_proprietaire;
+
+                fiche.appendChild(proprietaire);
+
+                // Bouton d'appel
+                const boutonAppel = document.createElement("a");
+
+                boutonAppel.className = "call-button";
+                boutonAppel.href = "tel:" + animal.telephone;
+                boutonAppel.textContent = "📞 Appeler le propriétaire";
+
+                fiche.appendChild(boutonAppel);
 
             } catch (error) {
 
-                // Affiche l'erreur en cas de problème
-                resultatDiv.textContent =
-                    "Erreur de connexion à l'API : " +
-                    error.message;
+                fiche.textContent =
+                    "Impossible de charger les informations. Veuillez réessayer.";
 
+                console.error(
+                    "Erreur lors du chargement de la médaille :",
+                    error
+                );
             }
+        }
 
-        });
+        // Récupération de l'identifiant depuis l'URL
+        const params = new URLSearchParams(window.location.search);
+        const idMedaille = params.get("id");
+
+        // Vérification de l'identifiant
+        if (
+            idMedaille &&
+            /^\d+$/.test(idMedaille) &&
+            Number(idMedaille) > 0
+        ) {
+
+            chargerMedaille(idMedaille);
+
+        } else {
+
+            fiche.textContent = "Médaille introuvable.";
+
+        }
 
     </script>
 
 </body>
-
 </html>
+
