@@ -2,12 +2,15 @@ require('dotenv').config();
 const express = require('express');
 const cors = require('cors');
 const pool = require('./config/database');
+const testRoutes = require('./routes/test.routes');
 
 const app = express();
 
 // Autoriser les requêtes extérieures (depuis ton front-end local par exemple)
 app.use(cors());
 app.use(express.json());
+
+app.use('/api', testRoutes);
 
 app.get('/api/health', async (req, res) => {
   try {
@@ -24,13 +27,6 @@ app.get('/api/health', async (req, res) => {
       erreur: error.message,
     });
   }
-});
-
-app.get('/api/test', (req, res) => {
-  res.json({
-    statut: 'OK',
-    message: 'La route de test fonctionne'
-  });
 });
 
 app.get('/api/medailles/:id', async (req, res) => {
