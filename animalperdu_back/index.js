@@ -3,6 +3,7 @@ const express = require('express');
 const cors = require('cors');
 const pool = require('./config/database');
 const testRoutes = require('./routes/test.routes');
+const healthRoutes = require('./routes/health.routes');
 
 const app = express();
 
@@ -11,23 +12,7 @@ app.use(cors());
 app.use(express.json());
 
 app.use('/api', testRoutes);
-
-app.get('/api/health', async (req, res) => {
-  try {
-    const [rows] = await pool.query('SELECT NOW() AS now');
-    res.json({
-      statut: 'OK',
-      message: 'API et Base de données MySQL opérationnelles',
-      horodate_bdd: rows[0].now,
-    });
-  } catch (error) {
-    res.status(500).json({
-      statut: 'Erreur',
-      message: 'Échec de connexion à la BDD',
-      erreur: error.message,
-    });
-  }
-});
+app.use('/api', healthRoutes);
 
 app.get('/api/medailles/:id', async (req, res) => {
 
