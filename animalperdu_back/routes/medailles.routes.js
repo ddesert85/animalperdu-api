@@ -1,67 +1,33 @@
 const express = require('express');
+const crypto = require('crypto');
 const pool = require('../config/database');
+const { verifierToken } = require('../middleware/auth');
 
 const router = express.Router();
 
+// Fiche publique consultée depuis le QR code : seuls les champs utiles sont exposés.
 router.get('/medailles/:id', async (req, res) => {
-  const { id } = req.params;
-
+  const id = String(req.params.id || '').trim();
   try {
-const [rows] = await pool.query(
-  `SELECT
-    id,
-    nom_animal,
-    espece,
-    nom_proprietaire,
-    telephone,
-    photo_url,
-    statut
-  FROM medailles
-  WHERE id = ?`,
-  [id]
-);
-
-    if (rows.length === 0) {
-      return res.status(404).json({
-        statut: 'Erreur',
-        message: 'Médaille introuvable'
-      });
-    }
-    
-    if (rows[0].statut !== 'actif') {
-  return res.status(403).json({
-    statut: 'Erreur',
-    message: 'Cette médaille est désactivée'
-  });
-}
-
-    await pool.query(
-      `UPDATE medailles
-       SET dernier_scan = NOW()
-       WHERE id = ?`,
-      [id]
+    const [rows] = await pool.execute(
+      `SELECT m.id, m.nom_animal, m.espece, m.race, m.sexe, m.description,
+              m.informations_sante, m.photo_url, m.statut,
+              u.nom AS nom_proprietaire, u.telephone, u.telephone_secondaire
+       FROM medailles m
+       JOIN utilisateurs u ON u.id = m.utilisateur_id
+       WHERE (m.id = ? OR m.token = ?) AND u.actif = 1
+       LIMIT 1`,
+      [id, id]
     );
+    if (!rows.length) return res.status(404).json({ statut: 'Erreur', message: 'Médaille introuvable' });
+    const medal = rows[0];
+    if (medal.statut !== 'active') return res.status(403).json({ statut: 'Erreur', message: 'Cette médaille est désactivée' });
 
-    const medaille = rows[0];
-
-    res.json({
-    statut: 'Succès',
-    donnees: {
-    nom_animal: medaille.nom_animal,
-    espece: medaille.espece,
-    nom_proprietaire: medaille.nom_proprietaire,
-    telephone: medaille.telephone,
-    photo_url: medaille.photo_url
-  }
-});
-
+    await pool.execute('UPDATE medailles SET dernier_scan = NOW() WHERE id = ?', [medal.id]);
+    return res.json({ statut: 'Succès', donnees: medal });
   } catch (error) {
-    console.error(error);
-
-    res.status(500).json({
-      statut: 'Erreur',
-      message: 'Une erreur est survenue lors de la récupération de la médaille'
-    });
+    console.error('Erreur fiche publique :', error);
+    return res.status(500).json({ statut: 'Erreur', message: 'Impossible de récupérer la fiche de l’animal' });
   }
 });
 

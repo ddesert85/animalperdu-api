@@ -1,4 +1,3 @@
-
 const express = require('express');
 const bcrypt = require('bcrypt');
 const jwt = require('jsonwebtoken');
@@ -7,177 +6,92 @@ const { verifierToken } = require('../middleware/auth');
 
 const router = express.Router();
 
-// Inscription d'un propriétaire
 router.post('/auth/inscription', async (req, res) => {
-  const { nom, email, mot_de_passe } = req.body;
+  const { nom, email, mot_de_passe, telephone, telephone_secondaire, adresse, code_postal, ville } = req.body;
 
-  if (!nom || !email || !mot_de_passe) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Tous les champs sont obligatoires'
-    });
+  if (!nom?.trim() || !email?.trim() || !mot_de_passe || !telephone?.trim()) {
+    return res.status(400).json({ statut: 'Erreur', message: 'Nom, email, téléphone et mot de passe sont obligatoires' });
   }
-
   const emailNormalise = email.trim().toLowerCase();
-
-  const emailValide = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalise);
-
-  if (!emailValide) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Adresse email invalide'
-    });
+  if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalise)) {
+    return res.status(400).json({ statut: 'Erreur', message: 'Adresse email invalide' });
   }
-
   if (mot_de_passe.length < 12) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Le mot de passe doit contenir au moins 12 caractères'
-    });
+    return res.status(400).json({ statut: 'Erreur', message: 'Le mot de passe doit contenir au moins 12 caractères' });
   }
 
   try {
-    const [utilisateurs] = await pool.query(
-      'SELECT id FROM utilisateurs WHERE email = ?',
-      [emailNormalise]
-    );
+    const [existing] = await pool.execute('SELECT id FROM utilisateurs WHERE email = ?', [emailNormalise]);
+    if (existing.length) return res.status(409).json({ statut: 'Erreur', message: 'Cette adresse email est déjà utilisée' });
 
-    if (utilisateurs.length > 0) {
-      return res.status(409).json({
-        statut: 'Erreur',
-        message: 'Cette adresse email est déjà utilisée'
-      });
-    }
-
-    const motDePasseHache = await bcrypt.hash(mot_de_passe, 12);
-
-    const [resultat] = await pool.query(
+    const hash = await bcrypt.hash(mot_de_passe, 12);
+    const [result] = await pool.execute(
       `INSERT INTO utilisateurs
-       (nom, email, mot_de_passe, role)
-       VALUES (?, ?, ?, 'proprietaire')`,
-      [nom.trim(), emailNormalise, motDePasseHache]
+       (nom, email, mot_de_passe, telephone, telephone_secondaire, adresse, code_postal, ville, role, actif)
+       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'proprietaire', 1)`,
+      [nom.trim(), emailNormalise, hash, telephone.trim(), telephone_secondaire?.trim() || null,
+       adresse?.trim() || null, code_postal?.trim() || null, ville?.trim() || null]
     );
 
     return res.status(201).json({
       statut: 'Succès',
       message: 'Compte propriétaire créé',
-      utilisateur: {
-        id: resultat.insertId,
-        nom: nom.trim(),
-        email: emailNormalise,
-        role: 'proprietaire'
-      }
+      utilisateur: { id: result.insertId, nom: nom.trim(), email: emailNormalise, telephone: telephone.trim(), role: 'proprietaire' }
     });
-
   } catch (error) {
     console.error('Erreur inscription :', error);
-
-    return res.status(500).json({
-      statut: 'Erreur',
-      message: 'Une erreur est survenue lors de la création du compte'
-    });
+    return res.status(500).json({ statut: 'Erreur', message: 'Une erreur est survenue lors de la création du compte' });
   }
 });
 
-
-// Connexion d'un utilisateur
 router.post('/auth/connexion', async (req, res) => {
   const { email, mot_de_passe } = req.body;
-
-  if (!email || !mot_de_passe) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Email et mot de passe obligatoires'
-    });
-  }
-
-  const emailNormalise = email.trim().toLowerCase();
+  if (!email?.trim() || !mot_de_passe) return res.status(400).json({ statut: 'Erreur', message: 'Email et mot de passe obligatoires' });
 
   try {
-    const [utilisateurs] = await pool.query(
-      `SELECT id, nom, email, mot_de_passe, role, actif
-       FROM utilisateurs
-       WHERE email = ?`,
-      [emailNormalise]
+    const [rows] = await pool.execute(
+      'SELECT id, nom, email, telephone, telephone_secondaire, adresse, code_postal, ville, mot_de_passe, role, actif FROM utilisateurs WHERE email = ?',
+      [email.trim().toLowerCase()]
     );
+    if (!rows.length) return res.status(401).json({ statut: 'Erreur', message: 'Identifiants incorrects' });
 
-    if (utilisateurs.length === 0) {
-      return res.status(401).json({
-        statut: 'Erreur',
-        message: 'Identifiants incorrects'
-      });
+    const user = rows[0];
+    if (!user.actif) return res.status(403).json({ statut: 'Erreur', message: 'Ce compte est désactivé' });
+    if (!(await bcrypt.compare(mot_de_passe, user.mot_de_passe))) {
+      return res.status(401).json({ statut: 'Erreur', message: 'Identifiants incorrects' });
     }
+    if (!process.env.JWT_SECRET) return res.status(500).json({ statut: 'Erreur', message: 'Configuration du serveur incorrecte' });
 
-    const utilisateur = utilisateurs[0];
-
-    if (!utilisateur.actif) {
-      return res.status(403).json({
-        statut: 'Erreur',
-        message: 'Ce compte est désactivé'
-      });
-    }
-
-    const motDePasseValide = await bcrypt.compare(
-      mot_de_passe,
-      utilisateur.mot_de_passe
-    );
-
-    if (!motDePasseValide) {
-      return res.status(401).json({
-        statut: 'Erreur',
-        message: 'Identifiants incorrects'
-      });
-    }
-
-    if (!process.env.JWT_SECRET) {
-  console.error('JWT_SECRET absent du fichier .env');
-
-  return res.status(500).json({
-    statut: 'Erreur',
-    message: 'Configuration du serveur incorrecte'
-  });
-}
-
-const token = jwt.sign(
-  {
-    id: utilisateur.id,
-    role: utilisateur.role
-  },
-  process.env.JWT_SECRET,
-  {
-    expiresIn: '2h'
-  }
-);
-
+    const token = jwt.sign({ id: user.id, role: user.role }, process.env.JWT_SECRET, { expiresIn: '2h' });
     return res.json({
       statut: 'Succès',
       message: 'Connexion réussie',
       token,
       utilisateur: {
-        id: utilisateur.id,
-        nom: utilisateur.nom,
-        email: utilisateur.email,
-        role: utilisateur.role
+        id: user.id, nom: user.nom, email: user.email, telephone: user.telephone,
+        telephone_secondaire: user.telephone_secondaire, adresse: user.adresse,
+        code_postal: user.code_postal, ville: user.ville, role: user.role
       }
     });
-
   } catch (error) {
     console.error('Erreur connexion :', error);
-
-    return res.status(500).json({
-      statut: 'Erreur',
-      message: 'Une erreur est survenue lors de la connexion'
-    });
+    return res.status(500).json({ statut: 'Erreur', message: 'Une erreur est survenue lors de la connexion' });
   }
 });
 
-// Route temporaire de vérification du token
-router.get('/auth/profil', verifierToken, (req, res) => {
-  res.json({
-    statut: 'Succès',
-    message: 'Authentification valide',
-    utilisateur: req.utilisateur
-  });
+router.get('/auth/profil', verifierToken, async (req, res) => {
+  try {
+    const [rows] = await pool.execute(
+      `SELECT id, nom, email, telephone, telephone_secondaire, adresse, code_postal, ville, role, actif, created_at
+       FROM utilisateurs WHERE id = ? AND actif = 1`,
+      [req.utilisateur.id]
+    );
+    if (!rows.length) return res.status(401).json({ statut: 'Erreur', message: 'Compte introuvable ou désactivé' });
+    return res.json({ statut: 'Succès', utilisateur: rows[0] });
+  } catch (error) {
+    console.error('Erreur profil :', error);
+    return res.status(500).json({ statut: 'Erreur', message: 'Impossible de récupérer le profil' });
+  }
 });
 
 module.exports = router;
