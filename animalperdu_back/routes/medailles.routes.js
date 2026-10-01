@@ -7,23 +7,19 @@ router.get('/medailles/:id', async (req, res) => {
   const { id } = req.params;
 
   try {
-    const [rows] = await pool.query(
-      `SELECT
-        id,
-        token,
-        nom_animal,
-        espece,
-        nom_proprietaire,
-        telephone,
-        email,
-        adresse,
-        photo_url,
-        statut,
-        dernier_scan
-      FROM medailles
-      WHERE id = ?`,
-      [id]
-    );
+const [rows] = await pool.query(
+  `SELECT
+    id,
+    nom_animal,
+    espece,
+    nom_proprietaire,
+    telephone,
+    photo_url,
+    statut
+  FROM medailles
+  WHERE id = ?`,
+  [id]
+);
 
     if (rows.length === 0) {
       return res.status(404).json({
@@ -31,6 +27,13 @@ router.get('/medailles/:id', async (req, res) => {
         message: 'Médaille introuvable'
       });
     }
+    
+    if (rows[0].statut !== 'actif') {
+  return res.status(403).json({
+    statut: 'Erreur',
+    message: 'Cette médaille est désactivée'
+  });
+}
 
     await pool.query(
       `UPDATE medailles
@@ -39,18 +42,25 @@ router.get('/medailles/:id', async (req, res) => {
       [id]
     );
 
+    const medaille = rows[0];
+
     res.json({
-      statut: 'Succès',
-      donnees: rows[0]
-    });
+    statut: 'Succès',
+    donnees: {
+    nom_animal: medaille.nom_animal,
+    espece: medaille.espece,
+    nom_proprietaire: medaille.nom_proprietaire,
+    telephone: medaille.telephone,
+    photo_url: medaille.photo_url
+  }
+});
 
   } catch (error) {
     console.error(error);
 
     res.status(500).json({
       statut: 'Erreur',
-      message: 'Erreur lors de la récupération de la médaille',
-      erreur: error.message
+      message: 'Une erreur est survenue lors de la récupération de la médaille'
     });
   }
 });
