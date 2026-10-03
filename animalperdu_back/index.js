@@ -1,5 +1,6 @@
 require('dotenv').config();
 const express = require('express');
+const path = require('path');
 const cors = require('cors');
 const testRoutes = require('./routes/test.routes');
 const healthRoutes = require('./routes/health.routes');
@@ -12,6 +13,8 @@ const app = express();
 // Autoriser les requêtes extérieures (depuis ton front-end local par exemple)
 app.use(cors());
 app.use(express.json());
+// Rendre les photos des animaux accessibles
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 app.use('/api', authRoutes);
 
 app.use('/api', testRoutes);

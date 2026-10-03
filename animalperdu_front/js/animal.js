@@ -64,15 +64,18 @@ document.addEventListener("DOMContentLoaded", async () => {
         fiche.replaceChildren();
 
         // Photo
-        if (animal.photo_url) {
-            const photo = document.createElement("img");
+if (animal.photo_url) {
+  const photo = document.createElement("img");
 
-            photo.src = animal.photo_url;
-            photo.alt = `Photo de ${animal.nom_animal || "l'animal"}`;
-            photo.className = "animal-photo";
+  photo.src = animal.photo_url.startsWith("http")
+    ? animal.photo_url
+    : `${API_URL}${animal.photo_url}`;
 
-            fiche.appendChild(photo);
-        }
+  photo.alt = `Photo de ${animal.nom_animal || "l'animal"}`;
+  photo.className = "photo";
+
+  fiche.appendChild(photo);
+}
 
         // Nom
         const nom = document.createElement("h2");

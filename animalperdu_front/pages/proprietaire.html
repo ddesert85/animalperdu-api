@@ -101,14 +101,15 @@
       </div>
 
       <div class="field">
-        <label for="animal-photo">URL de la photo</label>
-        <input
-          type="url"
-          id="animal-photo"
-          name="photo_url"
-          placeholder="https://..."
-        >
-      </div>
+  <label for="animal-photo">Photo de l'animal</label>
+  <input
+    type="file"
+    id="animal-photo"
+    name="photo"
+    accept="image/jpeg,image/png,image/webp"
+  >
+  <small>Formats acceptés : JPG, PNG et WebP.</small>
+</div>
 
       <button type="submit" id="medal-submit" class="submit">
         Créer la médaille
