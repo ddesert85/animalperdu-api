@@ -38,7 +38,13 @@ function afficherMedaille(m) {
   const detail = document.createElement("p");
   detail.textContent = `${m.espece || ""}${m.race ? ` — ${m.race}` : ""}`;
   const state = document.createElement("p");
-  state.textContent = `Statut : ${m.statut}`;
+
+  const statutTexte = {
+    active: "Active",
+    inactive: "Désactivée"
+  };
+
+state.textContent = `Statut : ${statutTexte[m.statut] || "Non renseigné"}`;
   const toggle = document.createElement("button");
   toggle.type = "button";
   toggle.textContent = m.statut === "active" ? "Désactiver" : "Réactiver";
@@ -73,6 +79,54 @@ async function chargerMedailles() {
     medalsFeedback.textContent = e.message;
   }
 }
+
+// Création d'une nouvelle médaille
+const medalForm = document.getElementById("medal-form");
+
+medalForm.addEventListener("submit", async (event) => {
+  event.preventDefault();
+
+  const formFeedback = document.getElementById("medal-form-feedback");
+  const submit = document.getElementById("medal-submit");
+
+  const medaille = {
+    nom_animal: document.getElementById("animal-name").value.trim(),
+    espece: document.getElementById("animal-species").value,
+    race: document.getElementById("animal-breed").value.trim() || null,
+    sexe: document.getElementById("animal-sex").value || null,
+    date_naissance:
+      document.getElementById("animal-birthdate").value || null,
+    description:
+      document.getElementById("animal-description").value.trim() || null,
+    informations_sante:
+      document.getElementById("animal-health").value.trim() || null,
+    photo_url:
+      document.getElementById("animal-photo").value.trim() || null
+  };
+
+  formFeedback.style.color = "#a12e2e";
+  formFeedback.textContent = "Création de la médaille en cours…";
+  submit.disabled = true;
+
+  try {
+    await api("/mes-medailles", {
+      method: "POST",
+      body: JSON.stringify(medaille)
+    });
+
+    formFeedback.style.color = "#315c45";
+    formFeedback.textContent = "La médaille a été créée avec succès !";
+
+    medalForm.reset();
+
+    await chargerMedailles();
+
+  } catch (error) {
+    formFeedback.textContent = error.message;
+  } finally {
+    submit.disabled = false;
+  }
+});
 
 async function chargerEspace() {
   try {

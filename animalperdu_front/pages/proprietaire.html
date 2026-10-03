@@ -27,10 +27,106 @@
     </section>
 
     <section id="medals-section" hidden>
-      <h2>Mes médailles</h2>
-      <p id="medals-feedback">Chargement des médailles…</p>
-      <div id="medals-list"></div>
-    </section>
+
+  <h2>Mes médailles</h2>
+
+  <section class="medal-form-card">
+    <h3>Ajouter une médaille</h3>
+
+    <form id="medal-form">
+
+      <div class="field">
+        <label for="animal-name">Nom de l'animal *</label>
+        <input
+          type="text"
+          id="animal-name"
+          name="nom_animal"
+          required
+        >
+      </div>
+
+      <div class="field">
+        <label for="animal-species">Espèce *</label>
+        <select id="animal-species" name="espece" required>
+          <option value="">Choisir une espèce</option>
+          <option value="Chien">Chien</option>
+          <option value="Chat">Chat</option>
+          <option value="Autre">Autre</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="animal-breed">Race</label>
+        <input
+          type="text"
+          id="animal-breed"
+          name="race"
+        >
+      </div>
+
+      <div class="field">
+        <label for="animal-sex">Sexe</label>
+        <select id="animal-sex" name="sexe">
+          <option value="">Non renseigné</option>
+          <option value="Mâle">Mâle</option>
+          <option value="Femelle">Femelle</option>
+        </select>
+      </div>
+
+      <div class="field">
+        <label for="animal-birthdate">Date de naissance</label>
+        <input
+          type="date"
+          id="animal-birthdate"
+          name="date_naissance"
+        >
+      </div>
+
+      <div class="field">
+        <label for="animal-description">Description</label>
+        <textarea
+          id="animal-description"
+          name="description"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label for="animal-health">Informations de santé</label>
+        <textarea
+          id="animal-health"
+          name="informations_sante"
+          rows="3"
+        ></textarea>
+      </div>
+
+      <div class="field">
+        <label for="animal-photo">URL de la photo</label>
+        <input
+          type="url"
+          id="animal-photo"
+          name="photo_url"
+          placeholder="https://..."
+        >
+      </div>
+
+      <button type="submit" id="medal-submit" class="submit">
+        Créer la médaille
+      </button>
+
+      <p id="medal-form-feedback" class="auth-feedback"></p>
+
+    </form>
+  </section>
+
+  <h3>Mes médailles existantes</h3>
+
+  <p id="medals-feedback">Chargement des médailles…</p>
+
+  <div id="medals-list"></div>
+
+</section>
+
   </main>
 
   <script src="../js/api.js"></script>
