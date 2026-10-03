@@ -202,77 +202,152 @@ router.post(
   }
 );
 
-// Modification d'une médaille
-router.put('/mes-medailles/:id', verifierToken, async (req, res) => {
-  const id = Number(req.params.id);
 
-  const {
-    nom_animal,
-    espece,
-    race,
-    sexe,
-    date_naissance,
-    description,
-    informations_sante,
-    photo_url
-  } = req.body;
+// Modification d'une médaille avec remplacement facultatif de la photo
+router.put(
+  '/mes-medailles/:id',
+  verifierToken,
+  recevoirPhoto,
+  async (req, res) => {
 
-  if (!Number.isInteger(id) || id < 1) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Identifiant de médaille invalide'
-    });
-  }
+    const id = Number(req.params.id);
 
-  if (!nom_animal?.trim() || !espece?.trim()) {
-    return res.status(400).json({
-      statut: 'Erreur',
-      message: 'Le nom de l’animal et l’espèce sont obligatoires'
-    });
-  }
+    const {
+      nom_animal,
+      espece,
+      race,
+      sexe,
+      date_naissance,
+      description,
+      informations_sante
+    } = req.body;
 
-  try {
-    const [result] = await pool.execute(
-      `UPDATE medailles
-       SET nom_animal = ?, espece = ?, race = ?, sexe = ?,
-           date_naissance = ?, description = ?,
-           informations_sante = ?, photo_url = ?
-       WHERE id = ? AND utilisateur_id = ?`,
-      [
-        nom_animal.trim(),
-        espece.trim(),
-        race?.trim() || null,
-        sexe || null,
-        date_naissance || null,
-        description?.trim() || null,
-        informations_sante?.trim() || null,
-        photo_url?.trim() || null,
-        id,
-        req.utilisateur.id
-      ]
-    );
-
-    if (!result.affectedRows) {
-      return res.status(404).json({
+    if (!Number.isInteger(id) || id < 1) {
+      return res.status(400).json({
         statut: 'Erreur',
-        message: 'Médaille introuvable ou non autorisée'
+        message: 'Identifiant de médaille invalide'
       });
     }
 
-    return res.json({
-      statut: 'Succès',
-      message: 'Médaille modifiée avec succès'
-    });
+    if (!nom_animal?.trim() || !espece?.trim()) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Le nom de l’animal et l’espèce sont obligatoires'
+      });
+    }
 
-  } catch (error) {
-    console.error('Erreur modification médaille :', error);
+    let nouveauCheminPhoto = null;
 
-    return res.status(500).json({
-      statut: 'Erreur',
-      message: 'Impossible de modifier la médaille'
-    });
+    try {
+
+      // Vérifier que la médaille appartient au propriétaire
+      const [medailles] = await pool.execute(
+        `SELECT photo_url
+         FROM medailles
+         WHERE id = ? AND utilisateur_id = ?`,
+        [id, req.utilisateur.id]
+      );
+
+      if (!medailles.length) {
+        return res.status(404).json({
+          statut: 'Erreur',
+          message: 'Médaille introuvable ou non autorisée'
+        });
+      }
+
+      const anciennePhoto = medailles[0].photo_url;
+      let photo_url = anciennePhoto;
+
+      // Si une nouvelle photo est envoyée, la compresser
+      if (req.file) {
+
+        const nomFichier = `${crypto.randomUUID()}.webp`;
+
+        nouveauCheminPhoto = path.join(uploadDir, nomFichier);
+
+        await sharp(req.file.buffer)
+          .rotate()
+          .resize({
+            width: 1200,
+            height: 1200,
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({
+            quality: 80,
+            effort: 4
+          })
+          .toFile(nouveauCheminPhoto);
+
+        photo_url = `/uploads/${nomFichier}`;
+      }
+
+      await pool.execute(
+        `UPDATE medailles
+         SET nom_animal = ?,
+             espece = ?,
+             race = ?,
+             sexe = ?,
+             date_naissance = ?,
+             description = ?,
+             informations_sante = ?,
+             photo_url = ?
+         WHERE id = ? AND utilisateur_id = ?`,
+        [
+          nom_animal.trim(),
+          espece.trim(),
+          race?.trim() || null,
+          sexe || null,
+          date_naissance || null,
+          description?.trim() || null,
+          informations_sante?.trim() || null,
+          photo_url,
+          id,
+          req.utilisateur.id
+        ]
+      );
+
+      // Supprimer l'ancienne photo uniquement après la mise à jour réussie
+      if (req.file && anciennePhoto?.startsWith('/uploads/')) {
+
+        const ancienNom = path.basename(anciennePhoto);
+        const ancienChemin = path.join(uploadDir, ancienNom);
+
+        try {
+          await fs.promises.unlink(ancienChemin);
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.error('Erreur suppression ancienne photo :', error);
+          }
+        }
+      }
+
+      return res.json({
+        statut: 'Succès',
+        message: 'Médaille modifiée avec succès',
+        photo_url
+      });
+
+    } catch (error) {
+
+      console.error('Erreur modification médaille :', error);
+
+      // Supprimer la nouvelle photo si l'enregistrement échoue
+      if (nouveauCheminPhoto) {
+        try {
+          await fs.promises.unlink(nouveauCheminPhoto);
+        } catch (suppressionError) {
+          console.error('Erreur nettoyage nouvelle photo :', suppressionError);
+        }
+      }
+
+      return res.status(500).json({
+        statut: 'Erreur',
+        message: 'Impossible de modifier la médaille'
+      });
+    }
   }
-});
+);
 
 // Activation ou désactivation d'une médaille
 router.patch('/mes-medailles/:id/statut', verifierToken, async (req, res) => {
