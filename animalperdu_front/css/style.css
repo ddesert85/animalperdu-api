@@ -134,3 +134,156 @@ footer{background:#f0f4f0;text-align:center;color:#68766d;padding:24px;font-size
     padding: 18px 14px;
   }
 }
+
+
+/* =====================================
+   FICHE PUBLIQUE DE L'ANIMAL
+===================================== */
+
+.animal-container {
+    width: min(100% - 32px, 600px);
+    margin: 30px auto;
+    padding: 0;
+}
+
+.animal-header {
+    text-align: center;
+    padding: 25px 15px;
+}
+
+.animal-header h1 {
+    font-size: clamp(28px, 6vw, 38px);
+    line-height: 1.2;
+    color: var(--gd);
+    margin: 0 0 12px;
+}
+
+.animal-header p {
+    color: var(--muted);
+    font-size: 16px;
+    line-height: 1.5;
+    margin: 0;
+}
+
+.animal-card {
+    background: white;
+    border: 1px solid #e5ebe6;
+    border-radius: 20px;
+    padding: 24px;
+    box-shadow: 0 8px 30px #23442f0d;
+    overflow: hidden;
+}
+
+
+.animal-photo {
+    display: block;
+    width: 100%;
+    max-width: 420px;
+    max-height: 420px;
+    height: auto;
+    object-fit: contain;
+    object-position: center;
+    border-radius: 16px;
+    margin: 0 auto 24px;
+    background: #f5f7f5;
+}
+
+
+
+.animal-name {
+    color: var(--gd);
+    text-align: center;
+    font-size: 32px;
+    line-height: 1.2;
+    margin: 10px 0;
+    overflow-wrap: anywhere;
+}
+
+.animal-identification {
+    text-align: center;
+    color: var(--muted);
+    font-size: 17px;
+    margin: 0 0 25px;
+}
+
+.animal-info {
+    padding: 16px 0;
+    border-top: 1px solid #edf0ed;
+}
+
+.animal-info h3,
+.animal-contact h3 {
+    color: var(--gd);
+    font-size: 16px;
+    margin: 0 0 8px;
+}
+
+.animal-info p {
+    color: var(--ink);
+    font-size: 16px;
+    line-height: 1.6;
+    margin: 0;
+    overflow-wrap: anywhere;
+    white-space: pre-line;
+}
+
+.animal-contact {
+    margin-top: 20px;
+    padding: 20px;
+    background: var(--pale);
+    border: 1px solid #dce8de;
+    border-radius: 14px;
+    text-align: center;
+}
+
+.animal-phone {
+    color: var(--gd);
+    font-size: clamp(21px, 5vw, 27px);
+    font-weight: 700;
+    margin: 12px 0 0;
+    overflow-wrap: anywhere;
+}
+
+.animal-footer {
+    text-align: center;
+    color: var(--muted);
+    padding: 25px 15px;
+    font-size: 14px;
+}
+
+.animal-footer p {
+    margin: 6px 0;
+}
+
+@media (max-width: 480px) {
+    .animal-container {
+        width: calc(100% - 24px);
+        margin: 12px auto;
+    }
+
+    .animal-header {
+        padding: 20px 10px;
+    }
+
+    .animal-header p {
+        font-size: 14px;
+    }
+
+    .animal-card {
+        padding: 17px;
+        border-radius: 16px;
+    }
+
+    .animal-photo {
+        max-height: 300px;
+    }
+
+    .animal-name {
+        font-size: 28px;
+    }
+
+    .animal-identification {
+        font-size: 15px;
+    }
+}
+

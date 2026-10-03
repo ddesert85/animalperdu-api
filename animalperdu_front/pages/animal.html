@@ -1,23 +1,32 @@
-
 <!DOCTYPE html>
 <html lang="fr">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
-    <title>Animal perdu - Retrouver son propriétaire</title>
+    <title>Animal Perdu - Fiche animal</title>
 
     <link rel="stylesheet" href="../css/style.css">
 </head>
 
 <body>
 
-    <main class="container">
-        <h1>Animal Perdu</h1>
+    <main class="animal-container">
 
-        <div id="fiche" class="message" aria-live="polite">
-            Chargement des informations de l'animal...
-        </div>
+        <header class="animal-header">
+            <h1>Animal Perdu</h1>
+            <p>Vous avez trouvé cet animal ? Voici les informations pour aider à le retrouver.</p>
+        </header>
+
+        <section id="fiche" class="animal-card" aria-live="polite">
+            <p>Chargement des informations de l'animal...</p>
+        </section>
+
+        <footer class="animal-footer">
+            <p>Merci de votre aide ❤️</p>
+            <p>Animal Perdu</p>
+        </footer>
+
     </main>
 
     <script src="../js/api.js"></script>
@@ -25,3 +34,4 @@
 
 </body>
 </html>
+

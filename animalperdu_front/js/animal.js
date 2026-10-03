@@ -1,4 +1,3 @@
-
 document.addEventListener("DOMContentLoaded", async () => {
     const fiche = document.getElementById("fiche");
 
@@ -16,11 +15,21 @@ document.addEventListener("DOMContentLoaded", async () => {
             `${API_BASE_URL}/medailles/${encodeURIComponent(token)}`
         );
 
-        const animal = await response.json();
+        const data = await response.json();
 
         if (!response.ok) {
             fiche.textContent =
-                animal.message || "Impossible de récupérer les informations de l'animal.";
+                data.message ||
+                "Impossible de récupérer les informations de l'animal.";
+            return;
+        }
+
+        // Récupération des données de l'animal
+        const animal = data.donnees;
+
+        if (!animal) {
+            fiche.textContent =
+                "Les informations de cet animal sont indisponibles.";
             return;
         }
 
@@ -28,59 +37,83 @@ document.addEventListener("DOMContentLoaded", async () => {
 
     } catch (error) {
         console.error("Erreur :", error);
+
         fiche.textContent =
             "Une erreur est survenue lors du chargement des informations.";
     }
 
+    // Création d'un bloc d'information
+    function ajouterInformation(titre, valeur) {
+        if (!valeur) return;
+
+        const bloc = document.createElement("div");
+        bloc.className = "animal-info";
+
+        const label = document.createElement("h3");
+        label.textContent = titre;
+
+        const texte = document.createElement("p");
+        texte.textContent = valeur;
+
+        bloc.append(label, texte);
+        fiche.appendChild(bloc);
+    }
+
+    // Affichage de la fiche de l'animal
     function afficherAnimal(animal) {
-        fiche.innerHTML = "";
+        fiche.replaceChildren();
 
-        const nom = document.createElement("h2");
-        nom.textContent = animal.nom_animal || "Animal";
-
-        const espece = document.createElement("p");
-        espece.textContent = `Espèce : ${animal.espece || "Non renseignée"}`;
-
-        fiche.appendChild(nom);
-        fiche.appendChild(espece);
-
-        if (animal.race) {
-            const race = document.createElement("p");
-            race.textContent = `Race : ${animal.race}`;
-            fiche.appendChild(race);
-        }
-
-        if (animal.sexe) {
-            const sexe = document.createElement("p");
-            sexe.textContent = `Sexe : ${animal.sexe}`;
-            fiche.appendChild(sexe);
-        }
-
-        if (animal.description) {
-            const description = document.createElement("p");
-            description.textContent = animal.description;
-            fiche.appendChild(description);
-        }
-
-        if (animal.informations_sante) {
-            const sante = document.createElement("p");
-            sante.textContent = `Informations de santé : ${animal.informations_sante}`;
-            fiche.appendChild(sante);
-        }
-
+        // Photo
         if (animal.photo_url) {
             const photo = document.createElement("img");
+
             photo.src = animal.photo_url;
             photo.alt = `Photo de ${animal.nom_animal || "l'animal"}`;
-            photo.className = "photo";
+            photo.className = "animal-photo";
+
             fiche.appendChild(photo);
         }
 
+        // Nom
+        const nom = document.createElement("h2");
+        nom.className = "animal-name";
+        nom.textContent = animal.nom_animal || "Animal";
+
+        fiche.appendChild(nom);
+
+        // Espèce et race
+        const identification = document.createElement("p");
+        identification.className = "animal-identification";
+
+        identification.textContent =
+            [animal.espece, animal.race]
+                .filter(Boolean)
+                .join(" • ") || "Informations non renseignées";
+
+        fiche.appendChild(identification);
+
+        // Informations complémentaires
+        ajouterInformation("Sexe", animal.sexe);
+        ajouterInformation("Description", animal.description);
+        ajouterInformation(
+            "Informations de santé",
+            animal.informations_sante
+        );
+
+        // Numéro de téléphone
         if (animal.telephone) {
-            const contact = document.createElement("a");
-            contact.href = `tel:${animal.telephone}`;
-            contact.textContent = "Appeler le propriétaire";
-            contact.className = "call-button";
+            const contact = document.createElement("div");
+            contact.className = "animal-contact";
+
+            const titre = document.createElement("h3");
+            titre.textContent = "Contacter le propriétaire";
+
+            const telephone = document.createElement("p");
+            telephone.className = "animal-phone";
+            telephone.textContent = animal.telephone;
+
+            contact.append(titre, telephone);
+
             fiche.appendChild(contact);
         }
     }
