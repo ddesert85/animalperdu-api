@@ -7,6 +7,7 @@ const healthRoutes = require('./routes/health.routes');
 const medaillesRoutes = require('./routes/medailles.routes');
 const authRoutes = require('./routes/auth.routes');
 const proprietaireRoutes = require('./routes/proprietaire.routes');
+const adminRoutes = require('./routes/admin.routes');
 
 const app = express();
 
@@ -21,6 +22,7 @@ app.use('/api', testRoutes);
 app.use('/api', healthRoutes);
 app.use('/api', medaillesRoutes);
 app.use('/api', proprietaireRoutes);
+app.use('/api', adminRoutes);
 
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () => {

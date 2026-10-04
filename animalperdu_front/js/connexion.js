@@ -49,7 +49,12 @@ loginForm.addEventListener("submit", async (event) => {
     feedback.style.color = "#315c45";
     feedback.textContent = "Connexion validée. Redirection…";
 
-    window.location.href = "./proprietaire.html";
+    // Redirection selon le rôle du compte
+if (result.utilisateur?.role === "admin") {
+  window.location.href = "./admin.html";
+} else {
+  window.location.href = "./proprietaire.html";
+}
 
   } catch (error) {
     feedback.textContent =

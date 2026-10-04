@@ -1,0 +1,151 @@
+
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Fiche médaille - Administration Animal Perdu</title>
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+  <header>
+    <div class="logo">
+      <span>🐾</span>
+      <strong>Animal Perdu</strong>
+    </div>
+
+    <button id="logout-button" type="button">
+      Déconnexion
+    </button>
+  </header>
+
+  <main class="admin-detail-container">
+
+    <a href="./admin.html" class="admin-back-link">
+      ← Retour à la liste des médailles
+    </a>
+
+    <h1>Fiche de la médaille</h1>
+
+    <p id="detail-feedback">
+      Chargement de la fiche...
+    </p>
+
+    <div id="medal-detail" hidden>
+        <div class="admin-detail-actions">
+            <button id="edit-medal-button" type="button">
+                Modifier les informations
+            </button>
+        </div>
+
+      <section class="admin-detail-card">
+        <h2>Informations de la médaille</h2>
+
+        <p><strong>Identifiant :</strong> <span id="medal-id"></span></p>
+        <p><strong>Statut :</strong> <span id="medal-status"></span></p>
+        <p><strong>Date de création :</strong> <span id="medal-created"></span></p>
+        <p><strong>Dernier scan :</strong> <span id="medal-last-scan"></span></p>
+      </section>
+
+      <section class="admin-detail-card">
+        <h2>Informations de l'animal</h2>
+
+        <p><strong>Nom :</strong> <span id="pet-name"></span></p>
+        <p><strong>Espèce :</strong> <span id="pet-species"></span></p>
+        <p><strong>Race :</strong> <span id="pet-breed"></span></p>
+        <p><strong>Sexe :</strong> <span id="pet-sex"></span></p>
+        <p><strong>Date de naissance :</strong> <span id="pet-birth"></span></p>
+        <p><strong>Description :</strong> <span id="pet-description"></span></p>
+        <p><strong>Informations de santé :</strong> <span id="pet-health"></span></p>
+      </section>
+
+      <section class="admin-detail-card">
+        <h2>Informations du propriétaire</h2>
+
+        <p><strong>Nom :</strong> <span id="owner-name"></span></p>
+        <p><strong>E-mail :</strong> <span id="owner-email"></span></p>
+        <p><strong>Téléphone :</strong> <span id="owner-phone"></span></p>
+        <p><strong>Téléphone secondaire :</strong> <span id="owner-phone-secondary"></span></p>
+        <p><strong>Adresse :</strong> <span id="owner-address"></span></p>
+        <p><strong>Code postal :</strong> <span id="owner-postal"></span></p>
+        <p><strong>Ville :</strong> <span id="owner-city"></span></p>
+        <p><strong>Compte actif :</strong> <span id="owner-active"></span></p>
+      </section>
+
+    </div>
+<div id="edit-modal" class="modal" hidden>
+  <div class="modal-content">
+
+    <h2>Modifier les informations</h2>
+
+    <form id="edit-medal-form">
+
+      <h3>Informations de l'animal</h3>
+
+      <label for="edit-pet-name">Nom de l'animal</label>
+      <input type="text" id="edit-pet-name">
+
+      <label for="edit-pet-species">Espèce</label>
+      <input type="text" id="edit-pet-species">
+
+      <label for="edit-pet-breed">Race</label>
+      <input type="text" id="edit-pet-breed">
+
+      <label for="edit-pet-sex">Sexe</label>
+      <input type="text" id="edit-pet-sex">
+
+      <label for="edit-pet-birth">Date de naissance</label>
+      <input type="date" id="edit-pet-birth">
+
+      <label for="edit-pet-description">Description</label>
+      <textarea id="edit-pet-description"></textarea>
+
+      <label for="edit-pet-health">Informations de santé</label>
+      <textarea id="edit-pet-health"></textarea>
+
+      <hr>
+
+      <h3>Informations du propriétaire</h3>
+
+      <label for="edit-owner-name">Nom</label>
+      <input type="text" id="edit-owner-name">
+
+      <label for="edit-owner-phone">Téléphone</label>
+      <input type="tel" id="edit-owner-phone">
+
+      <label for="edit-owner-phone-secondary">Téléphone secondaire</label>
+      <input type="tel" id="edit-owner-phone-secondary">
+
+      <label for="edit-owner-address">Adresse</label>
+      <input type="text" id="edit-owner-address">
+
+      <label for="edit-owner-postal">Code postal</label>
+      <input type="text" id="edit-owner-postal">
+
+      <label for="edit-owner-city">Ville</label>
+      <input type="text" id="edit-owner-city">
+
+      <div class="modal-actions">
+        <button type="button" id="cancel-edit-button">
+          Annuler
+        </button>
+
+        <button type="submit" id="save-edit-button">
+          Enregistrer
+        </button>
+      </div>
+
+    </form>
+
+  </div>
+</div>
+
+  </main>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/admin-detail.js"></script>
+
+</body>
+</html>
