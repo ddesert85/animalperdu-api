@@ -243,7 +243,7 @@ async function chargerDetail() {
     }
 
     const medaille = data.medaille;
-
+  
     if (!medaille) {
       throw new Error("Les informations de la médaille sont absentes.");
     }
@@ -257,14 +257,31 @@ async function chargerDetail() {
     afficher("medal-last-scan", formaterDate(medaille.dernier_scan));
 
     // Animal
-    afficher("pet-name", medaille.nom_animal);
-    afficher("pet-species", medaille.espece);
-    afficher("pet-breed", medaille.race);
-    afficher("pet-sex", medaille.sexe);
-    afficher("pet-birth", medaille.date_naissance);
-    afficher("pet-description", medaille.description);
-    afficher("pet-health", medaille.informations_sante);
+afficher("pet-name", medaille.nom_animal);
+afficher("pet-species", medaille.espece);
+afficher("pet-breed", medaille.race);
+afficher("pet-sex", medaille.sexe);
+afficher("pet-birth", medaille.date_naissance);
+afficher("pet-description", medaille.description);
+afficher("pet-health", medaille.informations_sante);
 
+// Photo de l'animal
+const petPhoto = document.getElementById("pet-photo");
+
+if (petPhoto) {
+  if (medaille.photo_url) {
+    petPhoto.src = `${API_BASE_URL.replace(/\/api\/?$/, "")}${medaille.photo_url}`;
+    petPhoto.alt = `Photo de ${medaille.nom_animal || "l'animal"}`;
+    petPhoto.hidden = false;
+
+    petPhoto.onerror = () => {
+      petPhoto.hidden = true;
+      console.error("Impossible de charger la photo :", medaille.photo_url);
+    };
+  } else {
+    petPhoto.hidden = true;
+  }
+}
     // Propriétaire
     afficher("owner-name", medaille.nom_proprietaire);
     afficher("owner-email", medaille.email_proprietaire);

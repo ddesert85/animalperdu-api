@@ -451,9 +451,6 @@ footer {
 /* =====================================
    FICHE PUBLIQUE DE L'ANIMAL
 ===================================== */
-/* =====================================
-   FICHE PUBLIQUE DE L'ANIMAL
-===================================== */
 
 .animal-container {
   width: min(100% - 32px, 600px);
@@ -839,5 +836,156 @@ footer {
   .admin-header {
     align-items: flex-start;
     flex-direction: column;
+  }
+}
+
+
+/* =====================================
+   FICHE DÉTAIL ADMINISTRATION
+===================================== */
+
+body:has(.admin-detail-container) {
+  background: #f5f8f5;
+  color: #26332d;
+}
+
+/* En-tête */
+body:has(.admin-detail-container) > header {
+  width: 100%;
+  min-height: 75px;
+  padding: 15px max(24px, calc((100% - 1100px) / 2));
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 20px;
+  background: white;
+  border-bottom: 1px solid #e5ebe6;
+}
+
+/* Contenu principal */
+.admin-detail-container {
+  width: min(1000px, calc(100% - 32px));
+  margin: 35px auto 60px;
+}
+
+/* Lien retour */
+.admin-back-link {
+  display: inline-block;
+  margin-bottom: 18px;
+  color: #315c45;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.admin-back-link:hover {
+  text-decoration: underline;
+}
+
+/* Titre */
+.admin-detail-container > h1 {
+  font-size: clamp(30px, 4vw, 42px);
+  margin: 10px 0 25px;
+  color: #244633;
+}
+
+/* Message de chargement */
+#detail-feedback {
+  color: #66736b;
+  margin-bottom: 20px;
+}
+
+/* Blocs d'informations */
+.admin-detail-card {
+  background: white;
+  border: 1px solid #e5ebe6;
+  border-radius: 16px;
+  padding: 25px 30px;
+  margin: 22px 0;
+  box-shadow: 0 5px 20px rgba(35, 68, 47, 0.05);
+}
+
+.admin-detail-card h2 {
+  color: #244633;
+  font-size: 22px;
+  margin: 0 0 20px;
+  padding-bottom: 14px;
+  border-bottom: 1px solid #edf0ed;
+}
+
+.admin-detail-card p {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0;
+  padding: 13px 0;
+  border-bottom: 1px solid #f0f2f0;
+  line-height: 1.5;
+  overflow-wrap: anywhere;
+}
+
+.admin-detail-card p:last-child {
+  border-bottom: none;
+}
+
+.admin-detail-card p strong {
+  color: #315c45;
+  min-width: 190px;
+}
+
+/* Photo de l'animal */
+#pet-photo {
+  display: block;
+  width: min(100%, 420px);
+  height: 300px;
+  margin: 0 auto 25px;
+  object-fit: cover;
+  object-position: center;
+  border-radius: 14px;
+  background: #edf4ee;
+  box-shadow: 0 5px 18px rgba(0, 0, 0, 0.08);
+}
+
+/* Bouton de modification */
+#edit-button {
+  display: inline-block;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 9px;
+  background: #315c45;
+  color: white;
+  font-size: 15px;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+#edit-button:hover {
+  background: #244633;
+}
+
+/* Adaptation mobile */
+@media (max-width: 600px) {
+  .admin-detail-container {
+    width: calc(100% - 22px);
+    margin: 20px auto 35px;
+  }
+
+  .admin-detail-card {
+    padding: 20px 17px;
+    border-radius: 13px;
+  }
+
+  .admin-detail-card p {
+    display: block;
+  }
+
+  .admin-detail-card p strong {
+    display: block;
+    min-width: 0;
+    margin-bottom: 4px;
+  }
+
+  #pet-photo {
+    height: 240px;
   }
 }
