@@ -305,3 +305,44 @@ if (petPhoto) {
 }
 
 chargerDetail();
+
+// Suppression d'une médaille
+const deleteMedalButton = document.getElementById("delete-medal-button");
+
+if (deleteMedalButton) {
+  deleteMedalButton.addEventListener("click", async () => {
+    const confirmation = confirm(
+      "Attention : cette action est définitive. Veux-tu vraiment supprimer cette médaille ?"
+    );
+
+    if (!confirmation) {
+      return;
+    }
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/admin/medailles/${medalId}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json();
+
+      if (!response.ok) {
+        throw new Error(data.message || "Impossible de supprimer la médaille.");
+      }
+
+      alert("La médaille a bien été supprimée.");
+
+      window.location.href = "admin.html";
+
+    } catch (error) {
+      console.error("Erreur suppression médaille :", error);
+      alert(error.message || "Une erreur est survenue.");
+    }
+  });
+}

@@ -6,6 +6,11 @@ const { verifierToken, verifierAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 
+const fs = require('fs');
+const path = require('path');
+
+const uploadDir = path.join(__dirname, '..', 'uploads');
+
 // Récupération de toutes les médailles pour l'administration
 router.get(
   '/admin/medailles',
@@ -239,5 +244,73 @@ router.put(
     }
   }
 )
+
+
+// Suppression d'une médaille depuis l'administration
+router.delete(
+  '/admin/medailles/:id',
+  verifierToken,
+  verifierAdmin,
+  async (req, res) => {
+    try {
+      const id = Number(req.params.id);
+
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+          statut: 'Erreur',
+          message: 'Identifiant de médaille invalide'
+        });
+      }
+
+      // Récupération de la photo associée
+      const [medailles] = await pool.execute(
+        'SELECT photo_url FROM medailles WHERE id = ?',
+        [id]
+      );
+
+      if (medailles.length === 0) {
+        return res.status(404).json({
+          statut: 'Erreur',
+          message: 'Médaille introuvable'
+        });
+      }
+
+      const photoUrl = medailles[0].photo_url;
+
+      // Suppression de la médaille en base de données
+      await pool.execute(
+        'DELETE FROM medailles WHERE id = ?',
+        [id]
+      );
+
+      // Suppression de la photo si elle se trouve dans uploads
+      if (photoUrl && photoUrl.startsWith('/uploads/')) {
+        const nomFichier = path.basename(photoUrl);
+        const cheminPhoto = path.join(uploadDir, nomFichier);
+
+        try {
+          await fs.promises.unlink(cheminPhoto);
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.error('Erreur suppression photo :', error);
+          }
+        }
+      }
+
+      return res.json({
+        statut: 'Succès',
+        message: 'La médaille et sa photo ont été supprimées'
+      });
+
+    } catch (error) {
+      console.error('Erreur suppression médaille admin :', error);
+
+      return res.status(500).json({
+        statut: 'Erreur',
+        message: 'Impossible de supprimer la médaille'
+      });
+    }
+  }
+);
 
 module.exports = router;
