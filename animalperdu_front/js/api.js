@@ -3,7 +3,7 @@
  */
 
 // Choisir l'environnement : "local" ou "production"
-const ENVIRONNEMENT = "production";
+const ENVIRONNEMENT = "local";
 
 const API_URLS = {
   local: "http://localhost:3000",
