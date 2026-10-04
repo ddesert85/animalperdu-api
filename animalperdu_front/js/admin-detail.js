@@ -346,3 +346,69 @@ if (deleteMedalButton) {
     }
   });
 }
+
+
+// Suppression du propriétaire et de toutes ses médailles
+const deleteOwnerButton = document.getElementById("delete-owner-button");
+
+if (deleteOwnerButton) {
+  deleteOwnerButton.addEventListener("click", async () => {
+    if (!medailleActuelle || !medailleActuelle.utilisateur_id) {
+      alert("Impossible d'identifier le propriétaire.");
+      return;
+    }
+
+    const nomProprietaire = medailleActuelle.nom_proprietaire || "ce propriétaire";
+
+    const confirmation = confirm(
+      `ATTENTION : cette action est définitive.\n\n` +
+      `Tu vas supprimer le compte de ${nomProprietaire}, ` +
+      `toutes ses médailles, les informations de ses animaux ` +
+      `et leurs photos.\n\n` +
+      `Cette opération est irréversible.\n\n` +
+      `Confirmer la suppression ?`
+    );
+
+    if (!confirmation) {
+      return;
+    }
+
+    deleteOwnerButton.disabled = true;
+    deleteOwnerButton.textContent = "Suppression en cours...";
+
+    try {
+      const response = await fetch(
+        `${API_BASE_URL}/admin/proprietaires/${encodeURIComponent(medailleActuelle.utilisateur_id)}`,
+        {
+          method: "DELETE",
+          headers: {
+            Authorization: `Bearer ${token}`
+          }
+        }
+      );
+
+      const data = await response.json().catch(() => ({}));
+
+      if (!response.ok) {
+        throw new Error(
+          data.message || "Impossible de supprimer le propriétaire."
+        );
+      }
+
+      alert(
+        `Le propriétaire et ses ${data.nombreMedailles} médaille(s) ont bien été supprimés.`
+      );
+
+      window.location.href = "admin.html";
+
+    } catch (error) {
+      console.error("Erreur suppression propriétaire :", error);
+
+      alert(error.message || "Une erreur est survenue.");
+
+      deleteOwnerButton.disabled = false;
+      deleteOwnerButton.textContent =
+        "Supprimer ce propriétaire et ses médailles";
+    }
+  });
+}

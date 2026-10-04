@@ -313,4 +313,122 @@ router.delete(
   }
 );
 
+
+// Suppression d'un propriétaire et de toutes ses médailles
+router.delete(
+  '/admin/proprietaires/:id',
+  verifierToken,
+  verifierAdmin,
+  async (req, res) => {
+    const connection = await pool.getConnection();
+
+    let photosASupprimer = [];
+
+    try {
+      const id = Number(req.params.id);
+
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+          statut: 'Erreur',
+          message: 'Identifiant du propriétaire invalide'
+        });
+      }
+
+      await connection.beginTransaction();
+
+      // Vérification du compte et de son rôle
+      const [utilisateurs] = await connection.execute(
+        `SELECT id, role
+         FROM utilisateurs
+         WHERE id = ?
+         FOR UPDATE`,
+        [id]
+      );
+
+      if (utilisateurs.length === 0) {
+        await connection.rollback();
+
+        return res.status(404).json({
+          statut: 'Erreur',
+          message: 'Propriétaire introuvable'
+        });
+      }
+
+      if (utilisateurs[0].role !== 'proprietaire') {
+        await connection.rollback();
+
+        return res.status(403).json({
+          statut: 'Erreur',
+          message: 'La suppression est réservée aux comptes propriétaires'
+        });
+      }
+
+      // Récupération des photos de toutes ses médailles
+      const [medailles] = await connection.execute(
+        `SELECT photo_url
+         FROM medailles
+         WHERE utilisateur_id = ?`,
+        [id]
+      );
+
+      photosASupprimer = medailles
+        .map(m => m.photo_url)
+        .filter(photo =>
+          typeof photo === 'string' &&
+          photo.startsWith('/uploads/')
+        );
+
+      // Suppression de toutes ses médailles
+      await connection.execute(
+        'DELETE FROM medailles WHERE utilisateur_id = ?',
+        [id]
+      );
+
+      // Suppression du compte propriétaire
+      await connection.execute(
+        `DELETE FROM utilisateurs
+         WHERE id = ? AND role = 'proprietaire'`,
+        [id]
+      );
+
+      await connection.commit();
+
+      // Suppression des photos qui ne sont plus utilisées
+      for (const photoUrl of new Set(photosASupprimer)) {
+        const nomFichier = path.basename(photoUrl);
+        const cheminPhoto = path.join(uploadDir, nomFichier);
+
+        try {
+          await fs.promises.unlink(cheminPhoto);
+        } catch (error) {
+          if (error.code !== 'ENOENT') {
+            console.error('Erreur suppression photo propriétaire :', error);
+          }
+        }
+      }
+
+      return res.json({
+        statut: 'Succès',
+        message: 'Le propriétaire et ses médailles ont été supprimés',
+        nombreMedailles: medailles.length
+      });
+
+    } catch (error) {
+      if (connection) {
+        await connection.rollback();
+      }
+
+      console.error('Erreur suppression propriétaire :', error);
+
+      return res.status(500).json({
+        statut: 'Erreur',
+        message: 'Impossible de supprimer le propriétaire'
+      });
+
+    } finally {
+      connection.release();
+    }
+  }
+);
+
 module.exports = router;
