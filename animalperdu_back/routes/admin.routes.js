@@ -180,17 +180,12 @@ router.put(
   verifierToken,
   verifierAdmin,
   async (req, res) => {
+
     const connection = await pool.getConnection();
 
     try {
-      const id = Number(req.params.id);
 
-      if (!Number.isInteger(id) || id <= 0) {
-        return res.status(400).json({
-          statut: 'Erreur',
-          message: 'Identifiant de médaille invalide'
-        });
-      }
+      const id = Number(req.params.id);
 
       const {
         nom_animal,
@@ -205,8 +200,26 @@ router.put(
         telephone_secondaire,
         adresse,
         code_postal,
-        ville
+        ville,
+        statut
       } = req.body;
+
+      if (!Number.isInteger(id) || id <= 0) {
+        return res.status(400).json({
+          statut: 'Erreur',
+          message: 'Identifiant de médaille invalide'
+        });
+      }
+
+      if (
+        statut !== undefined &&
+        !['active', 'inactive'].includes(statut)
+      ) {
+        return res.status(400).json({
+          statut: 'Erreur',
+          message: 'Statut invalide'
+        });
+      }
 
       await connection.beginTransaction();
 
@@ -238,7 +251,8 @@ router.put(
              sexe = ?,
              date_naissance = ?,
              description = ?,
-             informations_sante = ?
+             informations_sante = ?,
+             statut = COALESCE(?, statut)
          WHERE id = ?`,
         [
           nom_animal || null,
@@ -248,6 +262,7 @@ router.put(
           date_naissance || null,
           description || null,
           informations_sante || null,
+          statut ?? null,
           id
         ]
       );
@@ -282,6 +297,7 @@ router.put(
       });
 
     } catch (error) {
+
       await connection.rollback();
 
       console.error('Erreur modification médaille :', error);
@@ -292,11 +308,12 @@ router.put(
       });
 
     } finally {
+
       connection.release();
+
     }
   }
-)
-
+);
 
 // Suppression d'une médaille depuis l'administration
 router.delete(

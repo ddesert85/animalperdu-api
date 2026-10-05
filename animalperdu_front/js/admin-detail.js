@@ -88,6 +88,9 @@ function ouvrirModal() {
   document.getElementById("edit-pet-health").value =
     medailleActuelle.informations_sante || "";
 
+  document.getElementById("edit-medal-status").value =
+    medailleActuelle.statut || "active";
+
   document.getElementById("edit-owner-name").value =
     medailleActuelle.nom_proprietaire || "";
 
@@ -144,7 +147,8 @@ editForm.addEventListener("submit", async (event) => {
       document.getElementById("edit-pet-description").value.trim(),
     informations_sante:
       document.getElementById("edit-pet-health").value.trim(),
-
+    statut:
+      document.getElementById("edit-medal-status").value,
     nom_proprietaire:
       document.getElementById("edit-owner-name").value.trim(),
     telephone:

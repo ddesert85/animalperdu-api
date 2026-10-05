@@ -24,7 +24,6 @@ const profileSubmit = document.getElementById("profile-submit");
 // Médaille
 const medalForm = document.getElementById("medal-form");
 const medalModal = document.getElementById("medal-modal");
-const addMedalButton = document.getElementById("add-medal-button");
 const closeMedalModal = document.getElementById("close-medal-modal");
 const cancelMedalButton = document.getElementById("cancel-medal-button");
 const medalModalTitle = document.getElementById("medal-modal-title");
@@ -247,7 +246,7 @@ function afficherMedaille(m) {
 
   const statutTexte = {
     active: "Active",
-    inactive: "Désactivée"
+    inactive: "Inactive"
   };
 
   state.textContent =
@@ -262,37 +261,7 @@ function afficherMedaille(m) {
     ouvrirModificationMedaille(m);
   });
 
-  // Bouton activation / désactivation
-  const toggle = document.createElement("button");
-  toggle.type = "button";
-  toggle.textContent =
-    m.statut === "active" ? "Désactiver" : "Réactiver";
-
-  toggle.addEventListener("click", async () => {
-
-    toggle.disabled = true;
-
-    try {
-
-      await api(`/mes-medailles/${m.id}/statut`, {
-        method: "PATCH",
-        body: JSON.stringify({
-          statut: m.statut === "active" ? "inactive" : "active"
-        })
-      });
-
-      await chargerMedailles();
-
-    } catch (error) {
-
-      medalsFeedback.textContent = error.message;
-      toggle.disabled = false;
-
-    }
-
-  });
-
-  article.append(title, detail, state, editButton, toggle);
+  article.append(title, detail, state, editButton);
 
   return article;
 }
@@ -356,17 +325,6 @@ function fermerModalMedaille() {
   medalSubmit.textContent = "Créer la médaille";
 
 }
-
-/**
- * Préparation d'une nouvelle médaille.
- */
-addMedalButton.addEventListener("click", () => {
-
-  fermerModalMedaille();
-
-  ouvrirModalMedaille();
-
-});
 
 /**
  * Fermeture de la modale.
