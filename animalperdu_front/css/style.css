@@ -989,3 +989,59 @@ body:has(.admin-detail-container) > header {
     height: 240px;
   }
 }
+
+/* =====================================
+   FORMULAIRE CREATION UTILISATEUR
+===================================== */
+
+.admin-create-user {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 15px;
+  margin: 25px 0 10px;
+  padding: 25px;
+  background: #f7faf7;
+  border: 1px solid #e2e9e4;
+  border-radius: 12px;
+}
+
+.admin-create-user input {
+  width: 100%;
+  box-sizing: border-box;
+  padding: 12px 14px;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  background: white;
+  font: inherit;
+}
+
+.admin-create-user input:focus {
+  outline: none;
+  border-color: #315c45;
+  box-shadow: 0 0 0 2px rgba(49, 92, 69, 0.12);
+}
+
+.admin-create-user button {
+  width: fit-content;
+  padding: 12px 20px;
+  border: none;
+  border-radius: 8px;
+  background: #315c45;
+  color: white;
+  font: inherit;
+  cursor: pointer;
+}
+
+.admin-create-user button:hover {
+  background: #264a38;
+}
+
+@media (max-width: 700px) {
+  .admin-create-user {
+    grid-template-columns: 1fr;
+  }
+
+  .admin-create-user button {
+    width: 100%;
+  }
+}

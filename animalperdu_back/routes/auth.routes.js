@@ -6,7 +6,7 @@ const jwt = require('jsonwebtoken');
 
 const pool = require('../config/database');
 
-const { verifierToken } = require('../middleware/auth');
+const { verifierToken, verifierAdmin } = require('../middleware/auth');
 
 const router = express.Router();
 const crypto = require("crypto");
@@ -14,7 +14,11 @@ const { envoyerEmail } = require("../services/email.service");
 
 
 
-router.post('/auth/inscription', async (req, res) => {
+router.post(
+  '/auth/inscription',
+  verifierToken,
+  verifierAdmin,
+  async (req, res) => {
   const {
     nom,
     email,

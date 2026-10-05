@@ -206,3 +206,72 @@ async function initialiserAdmin() {
 if (token) {
   initialiserAdmin();
 }
+
+const createUserForm = document.getElementById("create-user-form");
+
+if (createUserForm) {
+  createUserForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const feedback = document.getElementById("create-user-feedback");
+
+    const nom = document.getElementById("create-user-name").value.trim();
+    const email = document.getElementById("create-user-email").value.trim();
+    const telephone = document.getElementById("create-user-phone").value.trim();
+    const telephoneSecondaire = document
+      .getElementById("create-user-phone-secondary")
+      .value.trim();
+    const adresse = document
+      .getElementById("create-user-address")
+      .value.trim();
+    const codePostal = document
+      .getElementById("create-user-postal")
+      .value.trim();
+    const ville = document
+      .getElementById("create-user-city")
+      .value.trim();
+
+    feedback.style.color = "#315c45";
+    feedback.textContent = "Création du compte en cours…";
+
+    try {
+      const token = sessionStorage.getItem("animalperdu_token");
+
+      const response = await fetch(`${API_BASE_URL}/auth/inscription`, {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`
+        },
+        body: JSON.stringify({
+          nom,
+          email,
+          telephone,
+          telephone_secondaire: telephoneSecondaire || null,
+          adresse: adresse || null,
+          code_postal: codePostal || null,
+          ville: ville || null
+        })
+      });
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(result.message || "Impossible de créer l'utilisateur.");
+      }
+
+      feedback.style.color = "#315c45";
+      feedback.textContent =
+        result.message ||
+        "L'utilisateur a été créé. Un email d'activation lui a été envoyé.";
+
+      createUserForm.reset();
+
+    } catch (error) {
+      console.error(error);
+
+      feedback.style.color = "#a12e2e";
+      feedback.textContent = error.message;
+    }
+  });
+}
