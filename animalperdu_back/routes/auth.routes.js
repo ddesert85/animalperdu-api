@@ -9,37 +9,83 @@ const pool = require('../config/database');
 const { verifierToken } = require('../middleware/auth');
 
 const router = express.Router();
+const crypto = require("crypto");
+const { envoyerEmail } = require("../services/email.service");
+
+
 
 router.post('/auth/inscription', async (req, res) => {
+  const {
+    nom,
+    email,
+    telephone,
+    telephone_secondaire,
+    adresse,
+    code_postal,
+    ville
+  } = req.body;
 
-  const { nom, email, mot_de_passe, telephone, telephone_secondaire, adresse, code_postal, ville } = req.body;
-
-  if (!nom?.trim() || !email?.trim() || !mot_de_passe || !telephone?.trim()) {
-    return res.status(400).json({ statut: 'Erreur', message: 'Nom, email, téléphone et mot de passe sont obligatoires' });
+  if (!nom?.trim() || !email?.trim() || !telephone?.trim()) {
+    return res.status(400).json({
+      statut: 'Erreur',
+      message: 'Nom, email et téléphone sont obligatoires'
+    });
   }
 
   const emailNormalise = email.trim().toLowerCase();
 
   if (!/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(emailNormalise)) {
-    return res.status(400).json({ statut: 'Erreur', message: 'Adresse email invalide' });
-  }
-
-  if (mot_de_passe.length < 12) {
-    return res.status(400).json({ statut: 'Erreur', message: 'Le mot de passe doit contenir au moins 12 caractères' });
+    return res.status(400).json({
+      statut: 'Erreur',
+      message: 'Adresse email invalide'
+    });
   }
 
   try {
+    const [existing] = await pool.execute(
+      'SELECT id FROM utilisateurs WHERE email = ?',
+      [emailNormalise]
+    );
 
-    const [existing] = await pool.execute('SELECT id FROM utilisateurs WHERE email = ?', [emailNormalise]);
+    if (existing.length) {
+      return res.status(409).json({
+        statut: 'Erreur',
+        message: 'Cette adresse email est déjà utilisée'
+      });
+    }
 
-    if (existing.length) return res.status(409).json({ statut: 'Erreur', message: 'Cette adresse email est déjà utilisée' });
+    // Génération du mot de passe aléatoire inutilisable
+    const motDePasseAleatoire = crypto.randomBytes(48).toString('hex');
+    const hash = await bcrypt.hash(motDePasseAleatoire, 12);
 
-    const hash = await bcrypt.hash(mot_de_passe, 12);
+    // Génération du jeton d'activation
+    const token = crypto.randomBytes(32).toString('hex');
+
+    // Seule l'empreinte du jeton sera enregistrée
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const expiration = new Date(Date.now() + 24 * 60 * 60 * 1000);
 
     const [result] = await pool.execute(
       `INSERT INTO utilisateurs
-       (nom, email, mot_de_passe, telephone, telephone_secondaire, adresse, code_postal, ville, role, actif)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'proprietaire', 1)`,
+      (
+        nom,
+        email,
+        mot_de_passe,
+        telephone,
+        telephone_secondaire,
+        adresse,
+        code_postal,
+        ville,
+        role,
+        actif,
+        token_activation,
+        token_expiration
+      )
+      VALUES (?, ?, ?, ?, ?, ?, ?, ?, 'proprietaire', 0, ?, ?)`,
       [
         nom.trim(),
         emailNormalise,
@@ -48,27 +94,86 @@ router.post('/auth/inscription', async (req, res) => {
         telephone_secondaire?.trim() || null,
         adresse?.trim() || null,
         code_postal?.trim() || null,
-        ville?.trim() || null
+        ville?.trim() || null,
+        tokenHash,
+        expiration
       ]
     );
 
+    const frontendUrl = process.env.FRONTEND_URL?.replace(/\/+$/, '');
+
+    if (!frontendUrl) {
+      throw new Error('FRONTEND_URL non configurée');
+    }
+
+    const lienActivation =
+      `${frontendUrl}/pages/activation.html?token=${token}`;
+
+    try {
+      await envoyerEmail({
+        destinataire: emailNormalise,
+        sujet: 'Activez votre compte Animal Perdu',
+
+        texte:
+          `Bonjour ${nom.trim()},\n\n` +
+          `Votre compte Animal Perdu a été créé.\n\n` +
+          `Pour choisir votre mot de passe et activer votre compte, cliquez sur ce lien :\n` +
+          `${lienActivation}\n\n` +
+          `Ce lien est valable pendant 24 heures.\n\n` +
+          `Si vous n'êtes pas à l'origine de cette demande, ignorez cet email.`,
+
+        html: `
+          <h2>Bienvenue sur Animal Perdu !</h2>
+
+          <p>Bonjour ${nom.trim()},</p>
+
+          <p>Votre compte a été créé.</p>
+
+          <p>
+            Pour choisir votre mot de passe et activer votre compte,
+            cliquez sur le bouton ci-dessous :
+          </p>
+
+          <p>
+            <a href="${lienActivation}"
+               style="display:inline-block;padding:12px 20px;background:#287a45;color:white;text-decoration:none;border-radius:5px;">
+              Activer mon compte
+            </a>
+          </p>
+
+          <p>Ce lien est valable pendant 24 heures.</p>
+
+          <p>
+            Si vous n'êtes pas à l'origine de cette demande,
+            ignorez cet email.
+          </p>
+        `
+      });
+
+    } catch (erreurEmail) {
+      // Si l'email échoue, on supprime le compte créé
+      await pool.execute(
+        'DELETE FROM utilisateurs WHERE id = ? AND actif = 0',
+        [result.insertId]
+      );
+
+      throw erreurEmail;
+    }
+
     return res.status(201).json({
       statut: 'Succès',
-      message: 'Compte propriétaire créé',
-      utilisateur: {
-        id: result.insertId,
-        nom: nom.trim(),
-        email: emailNormalise,
-        telephone: telephone.trim(),
-        role: 'proprietaire'
-      }
+      message: 'Un email d’activation vient de vous être envoyé.'
     });
 
   } catch (error) {
     console.error('Erreur inscription :', error);
-    return res.status(500).json({ statut: 'Erreur', message: 'Une erreur est survenue lors de la création du compte' });
-  }
 
+    return res.status(500).json({
+      statut: 'Erreur',
+      message: 'Une erreur est survenue lors de la création du compte',
+      code: error.code || 'ERREUR_INCONNUE'
+    });
+  }
 });
 
 router.post('/auth/connexion', async (req, res) => {
@@ -130,6 +235,87 @@ router.post('/auth/connexion', async (req, res) => {
   } catch (error) {
     console.error('Erreur connexion :', error);
     return res.status(500).json({ statut: 'Erreur', message: 'Une erreur est survenue lors de la connexion' });
+  }
+
+});
+
+
+router.post('/auth/activation', async (req, res) => {
+
+  const { token, mot_de_passe } = req.body;
+
+  if (!token || !mot_de_passe) {
+    return res.status(400).json({
+      statut: 'Erreur',
+      message: 'Le lien et le mot de passe sont obligatoires'
+    });
+  }
+
+  if (mot_de_passe.length < 12) {
+    return res.status(400).json({
+      statut: 'Erreur',
+      message: 'Le mot de passe doit contenir au moins 12 caractères'
+    });
+  }
+
+  try {
+
+    const tokenHash = crypto
+      .createHash('sha256')
+      .update(token)
+      .digest('hex');
+
+    const [rows] = await pool.execute(
+      `SELECT id
+       FROM utilisateurs
+       WHERE token_activation = ?
+         AND token_expiration > NOW()
+         AND actif = 0`,
+      [tokenHash]
+    );
+
+    if (!rows.length) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Ce lien d’activation est invalide ou expiré.'
+      });
+    }
+
+    const hash = await bcrypt.hash(mot_de_passe, 12);
+
+    const [result] = await pool.execute(
+      `UPDATE utilisateurs
+       SET mot_de_passe = ?,
+           actif = 1,
+           token_activation = NULL,
+           token_expiration = NULL
+       WHERE id = ?
+         AND actif = 0
+         AND token_activation = ?
+         AND token_expiration > NOW()`,
+      [hash, rows[0].id, tokenHash]
+    );
+
+    if (result.affectedRows !== 1) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Ce lien d’activation est invalide ou expiré.'
+      });
+    }
+
+    return res.json({
+      statut: 'Succès',
+      message: 'Votre compte est activé. Vous pouvez maintenant vous connecter.'
+    });
+
+  } catch (error) {
+
+    console.error('Erreur activation :', error);
+
+    return res.status(500).json({
+      statut: 'Erreur',
+      message: 'Une erreur est survenue lors de l’activation du compte'
+    });
   }
 
 });

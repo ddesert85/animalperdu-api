@@ -1,6 +1,7 @@
 
 /**
  * Gestion du formulaire de création de compte propriétaire.
+ * Le mot de passe sera choisi depuis le lien d'activation reçu par e-mail.
  */
 
 const registerForm = document.getElementById("register-form");
@@ -18,23 +19,8 @@ registerForm.addEventListener("submit", async (event) => {
   const adresse = document.getElementById("register-address").value.trim();
   const codePostal = document.getElementById("register-postal").value.trim();
   const ville = document.getElementById("register-city").value.trim();
-  const motDePasse = document.getElementById("register-password").value;
-  const confirmation = document.getElementById("register-confirm").value;
 
   feedback.style.color = "#a12e2e";
-
-  if (motDePasse.length < 12) {
-    feedback.textContent =
-      "Le mot de passe doit contenir au moins 12 caractères.";
-    return;
-  }
-
-  if (motDePasse !== confirmation) {
-    feedback.textContent =
-      "Les deux mots de passe ne correspondent pas.";
-    return;
-  }
-
   feedback.textContent = "Création du compte en cours…";
   submit.disabled = true;
 
@@ -51,8 +37,7 @@ registerForm.addEventListener("submit", async (event) => {
         telephone_secondaire: telephoneSecondaire || null,
         adresse: adresse || null,
         code_postal: codePostal || null,
-        ville: ville || null,
-        mot_de_passe: motDePasse
+        ville: ville || null
       })
     });
 
@@ -68,7 +53,8 @@ registerForm.addEventListener("submit", async (event) => {
 
     feedback.style.color = "#315c45";
     feedback.textContent =
-      "Votre compte a été créé. Vous pouvez maintenant vous connecter.";
+      result.message ||
+      "Votre demande d'inscription a été enregistrée. Consultez votre boîte mail pour activer votre compte.";
 
     registerForm.reset();
 

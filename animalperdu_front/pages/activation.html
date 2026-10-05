@@ -1,0 +1,77 @@
+<!DOCTYPE html>
+<html lang="fr">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Activation du compte - Animal Perdu</title>
+
+  <link rel="stylesheet" href="../css/style.css">
+</head>
+
+<body>
+
+  <main class="activation-container">
+
+    <h1>Activer mon compte</h1>
+
+    <p>
+      Choisissez votre mot de passe pour finaliser la création
+      de votre compte Animal Perdu.
+    </p>
+
+    <form id="activation-form">
+
+      <div>
+        <label for="mot_de_passe">Nouveau mot de passe</label>
+
+        <input
+          type="password"
+          id="mot_de_passe"
+          name="mot_de_passe"
+          minlength="12"
+          autocomplete="new-password"
+          required
+        >
+      </div>
+
+      <div>
+        <label for="confirmation">Confirmer le mot de passe</label>
+
+        <input
+          type="password"
+          id="confirmation"
+          name="confirmation"
+          minlength="12"
+          autocomplete="new-password"
+          required
+        >
+      </div>
+
+      <p>
+        Le mot de passe doit contenir au moins 12 caractères.
+      </p>
+
+      <button type="submit">
+        Activer mon compte
+      </button>
+
+    </form>
+
+    <p id="activation-message" role="status" aria-live="polite"></p>
+
+    <p id="connexion-link" hidden>
+      <a href="connexion.html">
+        Se connecter
+      </a>
+    </p>
+
+  </main>
+
+  <script src="../js/api.js"></script>
+  <script src="../js/activation.js"></script>
+
+</body>
+
+</html>
