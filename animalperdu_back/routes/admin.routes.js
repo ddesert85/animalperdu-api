@@ -3,13 +3,65 @@ const express = require('express');
 
 const pool = require('../config/database');
 const { verifierToken, verifierAdmin } = require('../middleware/auth');
+const crypto = require('crypto');
+const path = require('path');
+const fs = require('fs');
+const multer = require('multer');
+const sharp = require('sharp');
 
 const router = express.Router();
 
-const fs = require('fs');
-const path = require('path');
-
 const uploadDir = path.join(__dirname, '..', 'uploads');
+
+if (!fs.existsSync(uploadDir)) {
+  fs.mkdirSync(uploadDir, { recursive: true });
+}
+
+const upload = multer({
+  storage: multer.memoryStorage(),
+
+  limits: {
+    fileSize: 20 * 1024 * 1024
+  },
+
+  fileFilter: (req, file, cb) => {
+    const formatsAutorises = [
+      'image/jpeg',
+      'image/png',
+      'image/webp'
+    ];
+
+    if (!formatsAutorises.includes(file.mimetype)) {
+      return cb(
+        new Error('Format de photo non accepté. Utilisez JPG, PNG ou WebP.')
+      );
+    }
+
+    cb(null, true);
+  }
+});
+
+function recevoirPhoto(req, res, next) {
+  upload.single('photo')(req, res, (error) => {
+    if (!error) {
+      return next();
+    }
+
+    if (error.code === 'LIMIT_FILE_SIZE') {
+      return res.status(413).json({
+        statut: 'Erreur',
+        message: 'La photo est trop volumineuse. Limite : 20 Mo.'
+      });
+    }
+
+    return res.status(400).json({
+      statut: 'Erreur',
+      message: error.message || 'Impossible de recevoir la photo.'
+    });
+  });
+}
+
+
 
 // Récupération de toutes les médailles pour l'administration
 router.get(
@@ -427,6 +479,194 @@ router.delete(
 
     } finally {
       connection.release();
+    }
+  }
+);
+
+// Création d'une médaille par l'administrateur
+router.post(
+  '/admin/medailles',
+  verifierToken,
+  verifierAdmin,
+  recevoirPhoto,
+  async (req, res) => {
+
+    const {
+      utilisateur_id,
+      nom_animal,
+      espece,
+      race,
+      sexe,
+      date_naissance,
+      description,
+      informations_sante
+    } = req.body;
+
+    if (!utilisateur_id) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Le propriétaire est obligatoire'
+      });
+    }
+
+    if (!nom_animal?.trim() || !espece?.trim()) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Le nom de l’animal et l’espèce sont obligatoires'
+      });
+    }
+
+    const utilisateurId = Number(utilisateur_id);
+
+    if (!Number.isInteger(utilisateurId) || utilisateurId <= 0) {
+      return res.status(400).json({
+        statut: 'Erreur',
+        message: 'Identifiant de propriétaire invalide'
+      });
+    }
+
+    const token = crypto.randomBytes(32).toString('hex');
+
+    let photo_url = null;
+    let cheminPhoto = null;
+
+    try {
+
+      // Vérification que le propriétaire existe bien
+      const [utilisateurs] = await pool.execute(
+        `SELECT id
+         FROM utilisateurs
+         WHERE id = ? AND role = 'proprietaire'
+         LIMIT 1`,
+        [utilisateurId]
+      );
+
+      if (utilisateurs.length === 0) {
+        return res.status(404).json({
+          statut: 'Erreur',
+          message: 'Propriétaire introuvable'
+        });
+      }
+
+      // Compression automatique de la photo
+      if (req.file) {
+
+        const nomFichier = `${crypto.randomUUID()}.webp`;
+
+        cheminPhoto = path.join(uploadDir, nomFichier);
+
+        await sharp(req.file.buffer)
+          .rotate()
+          .resize({
+            width: 1200,
+            height: 1200,
+            fit: 'inside',
+            withoutEnlargement: true
+          })
+          .webp({
+            quality: 80,
+            effort: 4
+          })
+          .toFile(cheminPhoto);
+
+        photo_url = `/uploads/${nomFichier}`;
+      }
+
+      // Création de la médaille
+      const [result] = await pool.execute(
+        `INSERT INTO medailles
+         (
+           utilisateur_id,
+           token,
+           nom_animal,
+           espece,
+           race,
+           sexe,
+           date_naissance,
+           description,
+           informations_sante,
+           photo_url,
+           statut
+         )
+         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, 'active')`,
+        [
+          utilisateurId,
+          token,
+          nom_animal.trim(),
+          espece.trim(),
+          race?.trim() || null,
+          sexe || null,
+          date_naissance || null,
+          description?.trim() || null,
+          informations_sante?.trim() || null,
+          photo_url
+        ]
+      );
+
+      return res.status(201).json({
+        statut: 'Succès',
+        message: 'Médaille créée avec succès',
+        medaille: {
+          id: result.insertId,
+          utilisateur_id: utilisateurId,
+          token,
+          nom_animal: nom_animal.trim(),
+          espece: espece.trim(),
+          photo_url,
+          statut: 'active'
+        }
+      });
+
+    } catch (error) {
+
+      console.error('Erreur création médaille admin :', error);
+
+      // Suppression de la photo si la base de données échoue
+      if (cheminPhoto) {
+        try {
+          await fs.promises.unlink(cheminPhoto);
+        } catch (suppressionError) {
+          console.error(
+            'Erreur suppression photo :',
+            suppressionError
+          );
+        }
+      }
+
+      return res.status(500).json({
+        statut: 'Erreur',
+        message: 'Impossible de créer la médaille'
+      });
+    }
+  }
+);
+
+// Récupération des propriétaires pour la création d'une médaille
+router.get(
+  '/admin/proprietaires',
+  verifierToken,
+  verifierAdmin,
+  async (req, res) => {
+    try {
+      const [utilisateurs] = await pool.execute(
+        `SELECT id, nom, email
+         FROM utilisateurs
+         WHERE role = 'proprietaire'
+         ORDER BY nom ASC`
+      );
+
+      return res.json({
+        statut: 'Succès',
+        proprietaires: utilisateurs
+      });
+
+    } catch (error) {
+      console.error('Erreur récupération des propriétaires :', error);
+
+      return res.status(500).json({
+        statut: 'Erreur',
+        message: 'Impossible de récupérer les propriétaires'
+      });
     }
   }
 );

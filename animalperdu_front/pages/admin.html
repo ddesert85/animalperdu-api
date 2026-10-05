@@ -100,6 +100,104 @@
     </section>
 
     <section>
+  <h2>Créer une médaille</h2>
+
+  <form id="create-medal-form" class="admin-create-medal">
+
+    <div class="field">
+      <label for="create-medal-owner">Propriétaire *</label>
+      <select id="create-medal-owner" required>
+        <option value="">Choisir un propriétaire</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="create-medal-animal-name">Nom de l'animal *</label>
+      <input
+        type="text"
+        id="create-medal-animal-name"
+        required
+      >
+    </div>
+
+    <div class="field">
+      <label for="create-medal-species">Espèce *</label>
+      <select id="create-medal-species" required>
+        <option value="">Choisir une espèce</option>
+        <option value="Chien">Chien</option>
+        <option value="Chat">Chat</option>
+        <option value="Autre">Autre</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="create-medal-breed">Race</label>
+      <input
+        type="text"
+        id="create-medal-breed"
+      >
+    </div>
+
+    <div class="field">
+      <label for="create-medal-sex">Sexe</label>
+      <select id="create-medal-sex">
+        <option value="">Non renseigné</option>
+        <option value="Mâle">Mâle</option>
+        <option value="Femelle">Femelle</option>
+      </select>
+    </div>
+
+    <div class="field">
+      <label for="create-medal-birthdate">Date de naissance</label>
+      <input
+        type="date"
+        id="create-medal-birthdate"
+      >
+    </div>
+
+    <div class="field">
+      <label for="create-medal-description">Description</label>
+      <textarea
+        id="create-medal-description"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <div class="field">
+      <label for="create-medal-health">Informations de santé</label>
+      <textarea
+        id="create-medal-health"
+        rows="3"
+      ></textarea>
+    </div>
+
+    <div class="field">
+      <label for="create-medal-photo">Photo de l'animal</label>
+      <input
+        type="file"
+        id="create-medal-photo"
+        accept="image/jpeg,image/png,image/webp"
+      >
+      <small>Formats acceptés : JPG, PNG et WebP.</small>
+    </div>
+
+    <p
+      id="create-medal-feedback"
+      class="admin-feedback"
+      role="status"
+    ></p>
+
+    <button
+      type="submit"
+      id="create-medal-submit"
+    >
+      Créer la médaille
+    </button>
+
+  </form>
+</section>
+
+    <section>
       <h2>Rechercher un utilisateur</h2>
 
       <form id="search-form" class="admin-search">

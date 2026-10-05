@@ -275,3 +275,155 @@ if (createUserForm) {
     }
   });
 }
+
+// Chargement des propriétaires pour la création d'une médaille
+async function chargerProprietaires() {
+  const select = document.getElementById("create-medal-owner");
+
+  if (!select) {
+    return;
+  }
+
+  try {
+    const token = sessionStorage.getItem("animalperdu_token");
+
+    const response = await fetch(
+      `${API_BASE_URL}/admin/proprietaires`,
+      {
+        headers: {
+          Authorization: `Bearer ${token}`
+        }
+      }
+    );
+
+    const result = await response.json();
+
+    if (!response.ok) {
+      throw new Error(
+        result.message || "Impossible de récupérer les propriétaires."
+      );
+    }
+
+    result.proprietaires.forEach((proprietaire) => {
+      const option = document.createElement("option");
+
+      option.value = proprietaire.id;
+      option.textContent = `${proprietaire.nom} — ${proprietaire.email}`;
+
+      select.appendChild(option);
+    });
+
+  } catch (error) {
+    console.error("Erreur chargement des propriétaires :", error);
+
+    const feedback = document.getElementById("create-medal-feedback");
+
+    if (feedback) {
+      feedback.style.color = "#a12e2e";
+      feedback.textContent = error.message;
+    }
+  }
+}
+
+chargerProprietaires();
+
+// Création d'une médaille par l'administrateur
+const createMedalForm = document.getElementById("create-medal-form");
+
+if (createMedalForm) {
+  createMedalForm.addEventListener("submit", async (event) => {
+    event.preventDefault();
+
+    const feedback = document.getElementById("create-medal-feedback");
+    const submitButton = document.getElementById("create-medal-submit");
+
+    try {
+      const token = sessionStorage.getItem("animalperdu_token");
+
+      const medaille = new FormData();
+
+      medaille.append(
+        "utilisateur_id",
+        document.getElementById("create-medal-owner").value
+      );
+
+      medaille.append(
+        "nom_animal",
+        document.getElementById("create-medal-animal-name").value
+      );
+
+      medaille.append(
+        "espece",
+        document.getElementById("create-medal-species").value
+      );
+
+      medaille.append(
+        "race",
+        document.getElementById("create-medal-breed").value
+      );
+
+      medaille.append(
+        "sexe",
+        document.getElementById("create-medal-sex").value
+      );
+
+      medaille.append(
+        "date_naissance",
+        document.getElementById("create-medal-birthdate").value
+      );
+
+      medaille.append(
+        "description",
+        document.getElementById("create-medal-description").value
+      );
+
+      medaille.append(
+        "informations_sante",
+        document.getElementById("create-medal-health").value
+      );
+
+      const photo = document.getElementById("create-medal-photo").files[0];
+
+      if (photo) {
+        medaille.append("photo", photo);
+      }
+
+      submitButton.disabled = true;
+      feedback.style.color = "";
+      feedback.textContent = "Création de la médaille...";
+
+      const response = await fetch(
+        `${API_BASE_URL}/admin/medailles`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${token}`
+          },
+          body: medaille
+        }
+      );
+
+      const result = await response.json();
+
+      if (!response.ok) {
+        throw new Error(
+          result.message || "Impossible de créer la médaille."
+        );
+      }
+
+      feedback.style.color = "#2e7d32";
+      feedback.textContent = "Médaille créée avec succès.";
+
+      createMedalForm.reset();
+
+    } catch (error) {
+      console.error("Erreur création médaille :", error);
+
+      feedback.style.color = "#a12e2e";
+      feedback.textContent = error.message;
+
+    } finally {
+      submitButton.disabled = false;
+    }
+  });
+}
